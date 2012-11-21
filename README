@@ -14,6 +14,9 @@ Now you need to calculate the address, which is a another step and I'm too lazy 
 I also modified the output of some fields to hexadecimal values because I also hate to convert
 those values all the time.
 
+The -z option was added. It will invert the current PIE flag, remove if set, set if removed.
+It's something I use from time to time and it's faster than loading into MachOView and changing there.
+
 If you have any suggestions or improvements feel free to contact me, send patches, etc.
 
 Enjoy,
