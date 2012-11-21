@@ -1,0 +1,21 @@
+__________________________________       _____   __________
+__  __ \__  __/_  __ \_  __ \__  /       ___  | / /_  ____/
+_  / / /_  /  _  / / /  / / /_  / _________   |/ /_  / __  
+/ /_/ /_  /   / /_/ // /_/ /_  /___/_____/  /|  / / /_/ /  
+\____/ /_/    \____/ \____/ /_____/      /_/ |_/  \____/   
+                                                           
+
+This is a fork from Apple's otool with my personal modifications to otool.
+
+Otool is one of my favourite reversing tools since I work a lot from Terminal.app.
+The introduction of LC_MAIN as replacement for LC_UNIXTHREAD lost the entrypoint address information.
+Now you need to calculate the address, which is a another step and I'm too lazy for that!
+
+I also modified the output of some fields to hexadecimal values because I also hate to convert
+those values all the time.
+
+If you have any suggestions or improvements feel free to contact me, send patches, etc.
+
+Enjoy,
+fG!
+
