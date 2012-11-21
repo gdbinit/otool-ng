@@ -87,6 +87,7 @@ enum bool Bflag = FALSE; /* force Thumb disassembly (ARM objects only) */
 enum bool Qflag = FALSE; /* use otool's disassembler */
 enum bool qflag = FALSE; /* use 'C' Public llvm-mc disassembler */
 enum bool jflag = FALSE; /* print opcode bytes */
+enum bool zflag = FALSE; /* change PIE flag */
 char *pflag = NULL; 	 /* procedure name to start disassembling from */
 char *segname = NULL;	 /* name of the section to print the contents of */
 char *sectname = NULL;
@@ -240,6 +241,9 @@ static void print_argstrings(
     enum byte_sex load_commands_byte_sex,
     char *object_addr,
     uint32_t object_size);
+
+static void modify_pie_flag(struct ofile *ofile);
+static void modify_pie_flag_aux(char *start);
 
 /* apple_version is created by the libstuff/Makefile */
 extern char apple_version[];
@@ -426,6 +430,10 @@ char **envp)
 		case 'Z':
 		    Zflag = TRUE;
 		    break;
+		case 'z':
+			zflag = TRUE;
+			object_processing = TRUE;
+			break;
 		case 'm':
 		    use_member_syntax = FALSE;
 		    break;
@@ -453,7 +461,7 @@ char **envp)
 	 */
 	if(!fflag && !aflag && !hflag && !lflag && !Lflag && !tflag && !dflag &&
 	   !oflag && !Oflag && !rflag && !Tflag && !Mflag && !Rflag && !Iflag &&
-	   !Hflag && !Sflag && !cflag && !iflag && !Dflag && !segname){
+	   !Hflag && !Sflag && !cflag && !iflag && !Dflag && !segname && !zflag){
 	    error("one of -fahlLtdoOrTMRIHScis must be specified");
 	    usage();
 	}
@@ -536,6 +544,7 @@ void)
 	fprintf(stderr, "\t-B force Thumb disassembly (ARM objects only)\n");
 	fprintf(stderr, "\t-q use llvm's disassembler\n");
 	fprintf(stderr, "\t-Q use otool(1)'s disassembler\n");
+	fprintf(stderr, "\t-z modify current PIE flag\n");
 	exit(EXIT_FAILURE);
 }
 
@@ -839,7 +848,10 @@ void *cookie) /* cookie is not used */
 				  ofile->mh64->ncmds, ofile->mh64->sizeofcmds,
 				  ofile->mh64->flags, vflag);
 	}
-
+	
+	if (zflag){
+		modify_pie_flag(ofile);
+	}
 	/*
 	 * Load commands.
 	 */
@@ -2832,3 +2844,84 @@ __fpclassify(long double x)
 	return(0);
 }
 #endif /* !defined(__DYNAMIC__) */
+
+// fG! - 21-11-2012
+// invert the PIE flag at fat and non-fat binaries
+static void
+modify_pie_flag(struct ofile *ofile)
+{
+	// the ofile struct contains the filename and pointer to alloc'ed memory with target contents
+	uint32_t magic = *(uint32_t*)(ofile->file_addr);
+	if (magic == FAT_MAGIC) // byte order is little endian on internal buffer
+	{
+		printf("Target is a fat archive, modifying PIE flag for each arch...\n");
+		// ofile structure already contains the all the FAT related information
+		for (int i = 0 ; i < ofile->fat_header->nfat_arch; i++)
+		{
+			// ofile also contains an array of struct fat_arch
+			modify_pie_flag_aux((char*)(ofile->file_addr+ofile->fat_archs[i].offset));
+		}
+		// otool swaps internally the byte order so we need to swap it back
+		enum byte_sex host_byte_sex;
+		host_byte_sex = get_host_byte_sex();
+		swap_fat_arch(ofile->fat_archs, ofile->fat_header->nfat_arch, host_byte_sex);
+		swap_fat_header(ofile->fat_header, host_byte_sex);
+	}
+	else
+	{
+		modify_pie_flag_aux((char*)(ofile->file_addr));
+	}	
+
+	// and now overwrite the modified file
+	FILE *patched_file;
+	patched_file = fopen(ofile->file_name, "wb+");
+	
+	if (patched_file == NULL) system_fatal("Can't open file %s", ofile->file_name);
+	
+	// let's go command style! nothing can go wrong right ? :-)
+	size_t bytes_written = fwrite(ofile->file_addr, sizeof(char), ofile->file_size, patched_file);
+
+	if (bytes_written != ofile->file_size) system_fatal("Write failed to %s", ofile->file_name);
+	
+	fclose(patched_file);
+}
+
+static void
+modify_pie_flag_aux(char *start)
+{
+	uint32_t magic = *(uint32_t*)(start);
+	if (magic == MH_MAGIC)
+	{
+		struct mach_header *mh = (struct mach_header*)(start);
+		uint32_t flags = mh->flags;
+		if (flags & MH_PIE)
+		{
+			printf("PIE flag is currently set. Removing...\n");
+			flags &= ~MH_PIE;
+		}
+		else
+		{
+			printf("PIE flag is currently not set. Setting up...\n");
+			flags |= MH_PIE;
+		}
+		// update flag
+		mh->flags = flags;
+	}
+	else if (magic == MH_MAGIC_64)
+	{
+		struct mach_header_64 *mh64 = (struct mach_header_64*)(start);
+		uint32_t flags = mh64->flags;
+		if (flags & MH_PIE)
+		{
+			printf("PIE flag is currently set. Removing...\n");
+			flags &= ~MH_PIE;
+		}
+		else
+		{
+			printf("PIE flag is currently not set. Setting up...\n");
+			flags |= MH_PIE;
+		}
+		// update flag
+		mh64->flags = flags;
+	}
+}
