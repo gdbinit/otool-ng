@@ -1,7 +1,7 @@
 export USE_APPLE_PB_SUPPORT = all
 OFLAG = -Os
 LTO = -DLTO_SUPPORT
-TRIE = -DTRIE_SUPPORT
+TRIE = 
 RC_OS = macos
 X_CFLAGS =
 

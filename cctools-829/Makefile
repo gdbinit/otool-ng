@@ -83,7 +83,7 @@ ifeq "macos" "$(RC_OS)"
 		     [ "$(RC_PURPLE)" = "YES" ]; then \
 			    echo "" ; \
 			else \
-			    echo "-DTRIE_SUPPORT" ; fi; )
+			    echo "" ; fi; )
 else
   TRIE =
 endif
