@@ -295,7 +295,7 @@ extern void print_source_version_command(
     struct source_version_command *sv);
 
 extern void print_entry_point_command(
-    struct entry_point_command *ep);
+    struct entry_point_command *ep, uint64_t text_vmaddr);
 
 extern void print_rpath_command(
     struct rpath_command *rpath,
