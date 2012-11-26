@@ -19,6 +19,9 @@ It's something I use from time to time and it's faster than loading into MachOVi
 
 If you have any suggestions or improvements feel free to contact me, send patches, etc.
 
+To compile it you will need darwinbuild. Follow this post:
+http://reverse.put.as/2009/01/14/how-to-compile-gdb-and-other-apple-open-source-packages-in-mac-os-x/
+
 Enjoy,
 fG!
 
