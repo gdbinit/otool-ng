@@ -9,6 +9,26 @@ To Do:
   could have been set otherwise and does not print the next line.
 - Maybe add fat support for segedit(1)
 
+Changes for the 5.32 release (the cctools-835 release):
+- Fixed a bug in strip(1) when the input was a .o file containg
+  LC_FUNCTION_STARTS load command. The code in get_starting_syminfo_offset() in
+  strip.c did not look for the load command which can be the start of the
+  symbolic offset in the file.  Radar bug #11913911.
+
+Changes for the 5.32 release (the cctools-833 release):
+- Changed strip(1) to always use ld -r on ARM .o files to rename thumb symbols
+  so they don't get stripped.  Radar bug #11795809.
+
+Changes for the 5.32 release (the cctools-830 release):
+- Fixed a bug in nmedit(1) when the input was a .o file containg a
+  LC_DATA_IN_CODE load command. The code in get_starting_syminfo_offset() in
+  strip.c did not look for the load command which can be the start of the
+  symbolic offset in the file.  Radar bug #11554503.
+- Fixed a bug in libtool(1) when run as ranlib(1) to not update the table of
+  contents if the input archive's table of content's member name is not using
+  the extended long name format and we create an table of contents with a 
+  extended long name format (or vice a versa).  Radar bug #10399314.
+
 Changes for the 5.31 release (the cctools-827 release):
 - Added #ifdef guards for LTO_SUPPORT in lipo.c . Radar bug #11296366.
 
@@ -134,7 +154,7 @@ Changes for the 5.29 release (the cctools-801 release):
   argument but missing an argument for which page.  Radar bug #8979851.
 
 Changes for the 5.29 release (the cctools-800.3 release):
-- Added support for armv7[fk] to print_arch() in lipo.c .  Radar bug #8987684.
+- Added support for armv7[fsk] to print_arch() in lipo.c .  Radar bug #8987684.
 
 Changes for the 5.28 release (the cctools-798 release):
 - Added this line to the Makefile:
@@ -376,6 +396,7 @@ Changes for the 5.26 release (the cctools-712 release):
   which already had been done.  Radar bug #6128288.
 
 Changes for the 5.26 release (the cctools-710 release):
+- Fixed lipo(1)'s -i option to know about armv7. Radar bug 4545225.
 
 Changes for the 5.26 release (the cctools-709 release):
 - Added support for CPU_SUBTYPE_ARM_ALL to lipo -info command. Radar bug 6025863

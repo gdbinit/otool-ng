@@ -115,14 +115,14 @@ driver_build:	$(OBJROOT)/driver_dir
 	@if [ $(SRCROOT) = . ];						\
 	then								\
 	    cd driver_dir;  $(MAKE) -f ../Makefile driver VPATH=..	\
-		CFLAGS="-g -Os -I../../include $(GCC_FLAGS) $(SDK)"	\
+		CFLAGS="-g -I../../include $(OFLAG) $(GCC_FLAGS) $(SDK)" \
 		VERS_STRING_FLAGS="$(VERS_STRING_FLAGS)" OFILE_DIR=.	\
 		RC_FLAGS="$(RC_CFLAGS)" DEP_DIR=driver_dir;		\
 	else								\
 	    cd $(OBJROOT)/driver_dir; $(MAKE) -f $(SRCROOT)/Makefile	\
 		driver VPATH=$(SRCROOT) OFILE_DIR=$(OBJROOT)/driver_dir \
 		SYMROOT=$(SYMROOT)/driver_dir SRCROOT=$(SRCROOT)	\
-		CFLAGS="-g -Os -I$(SRCROOT)/../include $(GCC_FLAGS) $(SDK)" \
+		CFLAGS="-g -I$(SRCROOT)/../include $(OFLAG) $(GCC_FLAGS) $(SDK)" \
 		VERS_STRING_FLAGS="$(VERS_STRING_FLAGS)"		\
 		RC_FLAGS="$(RC_CFLAGS)" DEP_DIR=driver_dir;		\
 	fi

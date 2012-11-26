@@ -42,10 +42,7 @@ ifeq "macos" "$(RC_OS)"
 			   [ "$(RC_RELEASE)" = "SUPanWheat" ] || \
 			   [ "$(RC_RELEASE)" = "Tiger" ]      || \
 			   [ "$(RC_RELEASE)" = "SUTiSoho" ]   || \
-			   [ "$(RC_RELEASE)" = "Leopard" ]    || \
-			   [ "$(RC_RELEASE)" = "Vail" ]       || \
-			   [ "$(RC_RELEASE)" = "SugarBowl" ]  || \
-			   [ "$(RC_RELEASE)" = "BigBear" ]; then \
+			   [ "$(RC_RELEASE)" = "Leopard" ]; then \
 				echo "YES" ; \
 			    else \
 				echo "NO" ; fi; )
@@ -74,12 +71,6 @@ ifeq "macos" "$(RC_OS)"
 		     [ "$(RC_RELEASE)" = "Tiger" ]      || \
 		     [ "$(RC_RELEASE)" = "SUTiSoho" ]   || \
 		     [ "$(RC_RELEASE)" = "Leopard" ]    || \
-		     [ "$(RC_RELEASE)" = "Vail" ]       || \
-		     [ "$(RC_RELEASE)" = "SugarBowl" ]  || \
-		     [ "$(RC_RELEASE)" = "BigBear" ]    || \
-		     [ "$(RC_RELEASE)" = "Homewood" ]   || \
-		     [ "$(RC_RELEASE)" = "Kirkwood" ]   || \
-		     [ "$(RC_RELEASE)" = "Northstar" ]  || \
 		     [ "$(RC_PURPLE)" = "YES" ]; then \
 			    echo "" ; \
 			else \
@@ -137,7 +128,7 @@ all clean: $(DSTROOT)
 	      done;							\
 	    SED_RC_CFLAGS=`echo "$(RC_CFLAGS)" | sed 's/-arch ppc64//'  \
  		| sed 's/-arch x86_64//' | sed 's/-arch armv5//'	\
-		| sed 's/-arch armv6//' | sed 's/-arch armv7//'`;	\
+		| sed 's/-arch armv6//' | sed 's/-arch armv7[f,k,s]*//g'`; \
 	    EMPTY=`echo "$$SED_RC_CFLAGS" | sed 's/ //g'		\
 		| sed 's/-pipe//'`;					\
 	    if [ "$$EMPTY"x != "x" ];					\
@@ -168,7 +159,7 @@ all clean: $(DSTROOT)
 	      done;							\
 	    SED_RC_CFLAGS=`echo "$(RC_CFLAGS)" | sed 's/-arch ppc64//'  \
  		| sed 's/-arch x86_64//' | sed 's/-arch armv5//'	\
-		| sed 's/-arch armv6//' | sed 's/-arch armv7//'`;	\
+		| sed 's/-arch armv6//' | sed 's/-arch armv7[f,k,s]*//g'`; \
 	    EMPTY=`echo "$$SED_RC_CFLAGS" | sed 's/ //g'		\
 		| sed 's/-pipe//'`;					\
 	    if [ "$$EMPTY"x != "x" ];					\
@@ -243,7 +234,7 @@ install_tools: installhdrs
 	      done;							\
 	    SED_RC_CFLAGS=`echo "$(RC_CFLAGS)" | sed 's/-arch ppc64//'  \
  		| sed 's/-arch x86_64//' | sed 's/-arch armv5//'	\
-		| sed 's/-arch armv6//' | sed 's/-arch armv7//'`;	\
+		| sed 's/-arch armv6//' | sed 's/-arch armv7[f,k,s]*//g'`; \
 	    EMPTY=`echo "$$SED_RC_CFLAGS" | sed 's/ //g'		\
 		| sed 's/-pipe//'`;					\
 	    if [ "$$EMPTY"x != "x" ];					\
@@ -275,7 +266,7 @@ install_tools: installhdrs
 	      done;							\
 	    SED_RC_CFLAGS=`echo "$(RC_CFLAGS)" | sed 's/-arch ppc64//'  \
  		| sed 's/-arch x86_64//' | sed 's/-arch armv5//'	\
-		| sed 's/-arch armv6//' | sed 's/-arch armv7//'`;	\
+		| sed 's/-arch armv6//' | sed 's/-arch armv7[f,k,s]*//g'`; \
 	    EMPTY=`echo "$$SED_RC_CFLAGS" | sed 's/ //g'		\
 		| sed 's/-pipe//'`;					\
 	    if [ "$$EMPTY"x != "x" ];					\

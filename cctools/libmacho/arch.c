@@ -138,6 +138,8 @@ static const NXArchInfo ArchInfoTable[] = {
 	 "arm v7"},
     {"armv7f", CPU_TYPE_ARM,     CPU_SUBTYPE_ARM_V7F,	   NX_LittleEndian,
 	 "arm v7f"},
+    {"armv7s", CPU_TYPE_ARM,     CPU_SUBTYPE_ARM_V7S,	   NX_LittleEndian,
+	 "arm v7s"},
     {"armv7k", CPU_TYPE_ARM,     CPU_SUBTYPE_ARM_V7K,	   NX_LittleEndian,
 	 "arm v7k"},
     {"little", CPU_TYPE_ANY,     CPU_SUBTYPE_LITTLE_ENDIAN, NX_LittleEndian,

@@ -1,5 +1,5 @@
 <HTML>
-<!--This file created 5/10/12 4:44 PM by Claris Home Page version 3.0-->
+<!--This file created 8/6/12 4:28 PM by Claris Home Page version 3.0-->
 <HEAD>
    <TITLE>Private Compiler Tools Release Notes</TITLE>
    <META NAME=GENERATOR CONTENT="Claris Home Page 3.0">
@@ -8,14 +8,14 @@
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
 </HEAD>
 <BODY BGCOLOR="#FFFFFF">
-<P><FONT SIZE="-1">Mac OS X Xcode 4.4 Developer Release Copyright
+<P><FONT SIZE="-1">Mac OS X Xcode 4.5 Developer Release Copyright
 2012 by Apple, Inc. All Rights Reserved.</FONT></P>
 
-<H2>Private Mac OS X Xcode 4.4 Developer Release:<BR>
-Compiler Tools (cctools-829)</H2>
+<H2>Private Mac OS X Xcode 4.5 Developer Release:<BR>
+Compiler Tools (cctools-836)</H2>
 
-<P>This file contains release notes for the 5.30 release of the
-Compiler Tools for the Mac OS X Xcode 4.3 Developer Release. This
+<P>This file contains release notes for the 5.32 release of the
+Compiler Tools for the Mac OS X Xcode 4.5 Developer Release. This
 file contains information about the following topics:</P>
 
 <UL>
@@ -25,6 +25,85 @@ file contains information about the following topics:</P>
    
    <LI>Mach-O object tools (<B>nm</B>, <B>otool</B>, and so
    on)&nbsp;</LI>
+</UL>
+
+<H2>Notes Specific to Release 5.32 (Mac OS X Xcode 4.5 Developer
+Release)</H2>
+
+<H5><FONT SIZE="+1">Changes since the last release (cctools-835 for
+the 5.32 Mac OS X Xcode 4.5 Developer release)</FONT></H5>
+
+<UL>
+   <LI>Fixed the cctools sources so it contains the header file
+   "mach/arm/_structs.h" to allow it to build on non-iOS trains. 
+   Radar bug 12025943.</LI>
+</UL>
+
+<H5><FONT SIZE="+1">Changes since the last release (cctools-834 for
+the 5.32 Mac OS X Xcode 4.5 Developer release)</FONT></H5>
+
+<UL>
+   <LI>Added support for the LC_ENCRYPTION_INFO_64 load command.
+   Radar bug #11862845.</LI>
+   
+   <LI>Fixed a bug in strip(1) that could create a malformed object
+   if the object file had a function starts table. Radar bug
+   #11913911.</LI>
+</UL>
+
+<H5><FONT SIZE="+1">Changes since the last release (cctools-832 for
+the 5.32 Mac OS X Xcode 4.5 Developer release)</FONT></H5>
+
+<UL>
+   <LI>Changed strip(1) to always use ld -r on ARM .o files to rename
+   thumb symbols so they don't get stripped. Radar bug
+   #11795809.</LI>
+</UL>
+
+<H5><FONT SIZE="+1">Changes since the last release (cctools-831 for
+the 5.32 Mac OS X Xcode 4.5 Developer release)</FONT></H5>
+
+<UL>
+   <LI>Fixed a problem with the assembler driver, as(1), parsing
+   command line arguments with multiple character's. Radar bug
+   #11754204.</LI>
+</UL>
+
+<H5><FONT SIZE="+1">Changes since the last release (cctools-830 for
+the 5.32 Mac OS X Xcode 4.5 Developer release)</FONT></H5>
+
+<UL>
+   <LI>Improved otool(1)'s use of the data in code table when
+   disassembling arm binaries. Radar bug #11753747.</LI>
+   
+   <LI>Put a copy of mtoc(1) in usr/local/bin as well as
+   usr/local/efi/bin . Radar bug #10715889.</LI>
+</UL>
+
+<H5><FONT SIZE="+1">Changes since the last release (cctools-829 for
+the 5.31 Mac OS X Xcode 4.4 Developer release)</FONT></H5>
+
+<UL>
+   <LI>Changed the assembler to accept but ignore the .data_region
+   and .end_data_region directives. Radar bug #11459770.</LI>
+   
+   <LI>Fixed a bug in ranlib(1) that was trashing an archive if it's
+   table of contents name was not using the extended name format but
+   had the same entries in the table of contents. Radar bug
+   #10399314.</LI>
+   
+   <LI>Added the -G option to otool(1) to print the data in code
+   table. Radar bug #11498575.</LI>
+   
+   <LI>Changed otool(1) to use the data in code table when
+   disassembling arm binaries. Radar bug #11506042.</LI>
+   
+   <LI>Fixed a bug in nmedit(1) and strip(1) that could create a
+   malformed object if the object file had a data in code table.
+   Radar bug #11554503.</LI>
+   
+   <LI>Changed the code in libmacho to not use static data. Radar bug
+   #11457965.</LI>
 </UL>
 
 <H2>Notes Specific to Release 5.31 (Mac OS X Xcode 4.4 Developer

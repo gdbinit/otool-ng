@@ -455,6 +455,14 @@ struct arch_flag *specific_arch_flag)
 		if(specific_arch_flag != NULL)
 		    specific_arch_flag->name = "armv7f";
 		return(1);
+	    case CPU_SUBTYPE_ARM_V7S:
+		if(family_arch_flag != NULL){
+		    family_arch_flag->name = "arm";
+		    family_arch_flag->cpusubtype = CPU_SUBTYPE_ARM_ALL;
+		}
+		if(specific_arch_flag != NULL)
+		    specific_arch_flag->name = "armv7s";
+		return(1);
 	    case CPU_SUBTYPE_ARM_V7K:
 		if(family_arch_flag != NULL){
 		    family_arch_flag->name = "arm";

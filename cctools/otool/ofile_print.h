@@ -183,6 +183,11 @@ extern void print_hints(
     uint32_t strings_size,
     enum bool verbose);
 
+extern void print_dices(
+    struct data_in_code_entry *dices,
+    uint32_t ndices,
+    enum bool verbose);
+
 extern void print_segment_command(
     uint32_t cmd,
     uint32_t cmdsize,
@@ -303,6 +308,10 @@ extern void print_rpath_command(
 
 extern void print_encryption_info_command(
     struct encryption_info_command *ec,
+    uint32_t object_size);
+
+extern void print_encryption_info_command_64(
+    struct encryption_info_command_64 *ec,
     uint32_t object_size);
 
 extern void print_dyld_info_info_command(

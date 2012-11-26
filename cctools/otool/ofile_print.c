@@ -591,6 +591,9 @@ struct fat_arch *fat_arch)
 	    case CPU_SUBTYPE_ARM_V7F:
 		printf("armv7f\n");
 		break;
+	    case CPU_SUBTYPE_ARM_V7S:
+		printf("armv7s\n");
+		break;
 	    case CPU_SUBTYPE_ARM_V7K:
 		printf("armv7k\n");
 		break;
@@ -871,6 +874,10 @@ cpu_subtype_t cpusubtype)
 	    case CPU_SUBTYPE_ARM_V7F:
 		printf("    cputype CPU_TYPE_ARM\n"
 		       "    cpusubtype CPU_SUBTYPE_ARM_V7F\n");
+		break;
+	    case CPU_SUBTYPE_ARM_V7S:
+		printf("    cputype CPU_TYPE_ARM\n"
+		       "    cpusubtype CPU_SUBTYPE_ARM_V7S\n");
 		break;
 	    case CPU_SUBTYPE_ARM_V7K:
 		printf("    cputype CPU_TYPE_ARM\n"
@@ -1574,6 +1581,9 @@ NS32:
 		case CPU_SUBTYPE_ARM_V7F:
 		    printf("        V7F");
 		    break;
+		case CPU_SUBTYPE_ARM_V7S:
+		    printf("        V7S");
+		    break;
 		case CPU_SUBTYPE_ARM_V7K:
 		    printf("        V7K");
 		    break;
@@ -1780,6 +1790,7 @@ enum bool very_verbose)
     struct linkedit_data_command ld;
     struct rpath_command rpath;
     struct encryption_info_command encrypt;
+    struct encryption_info_command_64 encrypt64;
     struct dyld_info_command dyld_info;
     struct version_min_command vd;
     struct entry_point_command ep;
@@ -2153,6 +2164,17 @@ enum bool very_verbose)
 		if(swapped)
 		    swap_encryption_command(&encrypt, host_byte_sex);
 		print_encryption_info_command(&encrypt, object_size);
+		break;
+
+	    case LC_ENCRYPTION_INFO_64:
+		memset((char *)&encrypt64, '\0',
+		       sizeof(struct encryption_info_command_64));
+		size = left < sizeof(struct encryption_info_command_64) ?
+		       left : sizeof(struct encryption_info_command_64);
+		memcpy((char *)&encrypt64, (char *)lc, size);
+		if(swapped)
+		    swap_encryption_command_64(&encrypt64, host_byte_sex);
+		print_encryption_info_command_64(&encrypt64, object_size);
 		break;
 
 	    case LC_DYLD_INFO:
@@ -3508,6 +3530,39 @@ uint32_t object_size)
 	else
 	    printf("\n");
 	printf("    cryptid   %u\n", ec->cryptid);
+}
+
+/*
+ * print an LC_ENCRYPTION_INFO_64 command.  The encryption_info_command_64
+ * structure specified must be aligned correctly and in the host byte sex.
+ */
+void
+print_encryption_info_command_64(
+struct encryption_info_command_64 *ec,
+uint32_t object_size)
+{
+    uint64_t big_size;
+
+	printf("          cmd LC_ENCRYPTION_INFO_64\n");
+	printf("      cmdsize %u", ec->cmdsize);
+	if(ec->cmdsize < sizeof(struct encryption_info_command_64))
+	    printf(" Incorrect size\n");
+	else
+	    printf("\n");
+	printf("    cryptoff  0x%x", ec->cryptoff);
+	if(ec->cryptoff > object_size)
+	    printf(" (past end of file)\n");
+	else
+	    printf("\n");
+	printf("    cryptsize %u", ec->cryptsize);
+	big_size = ec->cryptsize;
+	big_size += ec->cryptoff;
+	if(big_size > object_size)
+	    printf(" (past end of file)\n");
+	else
+	    printf("\n");
+	printf("    cryptid   %u\n", ec->cryptid);
+	printf("        pad   %u\n", ec->pad);
 }
 
 /*
@@ -7189,6 +7244,46 @@ enum bool verbose)
 	    }
 	    else
 		printf("\n");
+	}
+}
+
+void
+print_dices(
+struct data_in_code_entry *dices,
+uint32_t ndices,
+enum bool verbose)
+{
+    uint32_t i;
+
+	printf("Data in code table (%u entries)\n", ndices);
+	printf("offset     length kind\n");
+	for(i = 0; i < ndices; i++){
+	    printf("0x%08x %6u ", (unsigned)dices[i].offset, dices[i].length);
+	    if(verbose){
+		switch(dices[i].kind){
+		case DICE_KIND_DATA:
+		    printf("DATA");
+		    break;
+		case DICE_KIND_JUMP_TABLE8:
+		    printf("JUMP_TABLE8");
+		    break;
+		case DICE_KIND_JUMP_TABLE16:
+		    printf("JUMP_TABLE16");
+		    break;
+		case DICE_KIND_JUMP_TABLE32:
+		    printf("JUMP_TABLE32");
+		    break;
+		case DICE_KIND_ABS_JUMP_TABLE32:
+		    printf("ABS_JUMP_TABLE32");
+		    break;
+		default:
+		    printf("0x%04x", (unsigned)dices[i].kind);
+		    break;
+		}
+	    }
+	    else
+		printf("0x%04x", (unsigned)dices[i].kind);
+	    printf("\n");
 	}
 }
 

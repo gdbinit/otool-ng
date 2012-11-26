@@ -1918,6 +1918,9 @@ struct fat_arch *fat_arch)
 	    case CPU_SUBTYPE_ARM_V7F:
 		printf("armv7f");
 		break;
+	    case CPU_SUBTYPE_ARM_V7S:
+		printf("armv7s");
+		break;
 	    case CPU_SUBTYPE_ARM_V7K:
 		printf("armv7k");
 		break;

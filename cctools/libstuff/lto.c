@@ -241,6 +241,11 @@ char *target_triple)
 	    arch_flag->cputype = CPU_TYPE_ARM;
 	    arch_flag->cpusubtype = CPU_SUBTYPE_ARM_V7F;
 	}
+	else if(strncmp(target_triple, "armv7s", n) == 0 ||
+	        strncmp(target_triple, "thumbv7s", n) == 0){
+	    arch_flag->cputype = CPU_TYPE_ARM;
+	    arch_flag->cpusubtype = CPU_SUBTYPE_ARM_V7S;
+	}
 	else if(strncmp(target_triple, "armv7k", n) == 0 ||
 	        strncmp(target_triple, "thumbv7k", n) == 0){
 	    arch_flag->cputype = CPU_TYPE_ARM;

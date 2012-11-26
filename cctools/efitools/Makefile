@@ -35,6 +35,7 @@ VPATH = $(OFILE_DIR)
 SYMROOT = .
 
 EFIBINDIR = /usr/local/efi/bin
+LOCBINDIR = /usr/local/bin
 
 CFILES = makerelocs.c mtoc.c
 
@@ -84,13 +85,15 @@ shlib_clean:
 install: all install
 
 install:
-	$(MKDIRS) $(DSTROOT)$(EFIBINDIR)
+	$(MKDIRS) $(DSTROOT)$(EFIBINDIR) $(DSTROOT)$(LOCBINDIR)
 # For now don't overwrite the existing makerelocs program the efitools project
 # builds.
 #	install -c -s -m 555 $(SYMROOT)/makerelocs.NEW \
 #		$(DSTROOT)$(EFIBINDIR)/makerelocs
 	install -c -s -m 555 $(SYMROOT)/mtoc.NEW \
 		$(DSTROOT)$(EFIBINDIR)/mtoc
+	install -c -s -m 555 $(SYMROOT)/mtoc.NEW \
+		$(DSTROOT)$(LOCBINDIR)/mtoc
 
 installsrc:
 	$(MKDIRS) $(SRCROOT)

@@ -39,10 +39,10 @@ ifneq "" "$(SDKROOT)"
 endif
 
 ifeq "clang" "$(notdir $(CC))"
-  CFLAGS = $(STATIC) $(OFLAG) $(LTO) -g -Wall -I$(SRCROOT)/../include \
+  CFLAGS = $(STATIC) $(OFLAG) -g -Wall -I$(SRCROOT)/../include \
 	   -I$(SRCROOT) $(LEGACY) $(EFI_SUPPORT) $(SDK)
 else
-  CFLAGS = $(STATIC) $(OFLAG) $(LTO) -g -Wall -I$(SRCROOT)/../include \
+  CFLAGS = $(STATIC) $(OFLAG) -g -Wall -I$(SRCROOT)/../include \
 	   -I$(SRCROOT) $(X_CFLAGS) $(LEGACY) $(EFI_SUPPORT) $(SDK)
 endif
 

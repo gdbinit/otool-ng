@@ -5,6 +5,15 @@
 TODO:
 - Deal with LC_PREPAGE and unknown load commands that don't need to be swapped.
 
+Changes for the 5.32 release (the cctools-835 release):
+- Added support for the LC_ENCRYPTION_INFO_64 load command. Radar bug #11862845.
+  - Added swap_encryption_command_64() to bytesex.c .
+  - Added support for the LC_ENCRYPTION_INFO_64 command in check_Mach_O() in
+    ofile.c and in swap_object_headers() in swap_headers.c .
+
+Changes for the 5.32 release (the cctools-830 release):
+- Added swap_data_in_code_entry() to bytesex.c.  Radar bug #11498575.
+
 Changes for the 5.31 release (the cctools-829 release):
 - Fixed the change in check_fat_object_in_archive() in ofile.c to handle llvm
   bitcode in fat files in archives for Radar bug #9087924.  The added code was
@@ -102,7 +111,7 @@ Changes for the 5.28 release (the cctools-801 release):
   parameter.  Radar bug #9354501
 
 Changes for the 5.28 release (the cctools-800.3 release):
-- Added armv7[fk] entries to arch_flags[] in arch.c, code in set_lto_cputype()
+- Added armv7[fsk] entries to arch_flags[] in arch.c, code in set_lto_cputype()
   in lto.c, code in get_arch_from_host() in get_arch_from_host.c and code in
   cpusubtype_findbestarch() in best_arch.c for these. Radar bug #8987684.
 

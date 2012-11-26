@@ -2,6 +2,9 @@ TODO:
 - Add -v description to checksyms.
 - The 4.4bsd a.out(5) man page is wrong for Rhapsody.
 
+Changes for the 5.32 release (the cctools-830 release):
+- Added the -G option to the otool(1) man pages. Radar bug #11498575.
+
 Changes for the 5.31 release (the cctools-825 release):
 - Added the -q and -Q options to the as(1) and otool(1) man pages. Radar bug
   #11139995.

@@ -75,6 +75,7 @@ enum bool Mflag = FALSE; /* print the dylib module table */
 enum bool Rflag = FALSE; /* print the dylib reference table */
 enum bool Iflag = FALSE; /* print the indirect symbol table entries */
 enum bool Hflag = FALSE; /* print the two-level hints table */
+enum bool Gflag = FALSE; /* print the data in code table */
 enum bool Sflag = FALSE; /* print the contents of the __.SYMDEF file */
 enum bool vflag = FALSE; /* print verbosely (symbolically) when possible */
 enum bool Vflag = FALSE; /* print dissassembled operands verbosely */
@@ -184,6 +185,23 @@ static enum bool get_hints_cmd(
     enum byte_sex load_commands_byte_sex,
     struct twolevel_hints_command *hints_cmd);
 
+static void get_data_in_code_info(
+    struct load_command *load_commands,
+    uint32_t ncmds,
+    uint32_t sizeofcmds,
+    enum byte_sex load_commands_byte_sex,
+    char *object_addr,
+    uint32_t object_size,
+    struct data_in_code_entry **dices,
+    uint32_t *ndices);
+
+static enum bool get_dices_cmd(
+    struct load_command *load_commands,
+    uint32_t ncmds,
+    uint32_t sizeofcmds,
+    enum byte_sex load_commands_byte_sex,
+    struct linkedit_data_command *dices_cmd);
+
 static int sym_compare(
     struct symbol *sym1,
     struct symbol *sym2);
@@ -229,7 +247,9 @@ static void print_text(
     enum bool verbose,
     cpu_subtype_t cpusubtype,
     char *object_addr,
-    uint32_t object_size);
+    uint32_t object_size,
+    struct data_in_code_entry *dices,
+    uint32_t ndices);
 
 static void print_argstrings(
     uint32_t magic,
@@ -410,6 +430,10 @@ char **envp)
 		    Hflag = TRUE;
 		    object_processing = TRUE;
 		    break;
+		case 'G':
+		    Gflag = TRUE;
+		    object_processing = TRUE;
+		    break;
 		case 'S':
 		    Sflag = TRUE;
 		    break;
@@ -536,6 +560,7 @@ void)
 		"library\n");
 	fprintf(stderr, "\t-I print the indirect symbol table\n");
 	fprintf(stderr, "\t-H print the two-level hints table\n");
+	fprintf(stderr, "\t-G print the data in code table\n");
 	fprintf(stderr, "\t-v print verbosely (symbolically) when possible\n");
 	fprintf(stderr, "\t-V print disassembled operands symbolically\n");
 	fprintf(stderr, "\t-c print argument strings of a core file\n");
@@ -585,7 +610,8 @@ void *cookie) /* cookie is not used */
     struct dylib_reference *refs, *allocated_refs;
     uint32_t nmods, ntocs, nrefs;
     struct twolevel_hint *hints, *allocated_hints;
-    uint32_t nhints;
+    struct data_in_code_entry *dices, *allocated_dices;
+    uint32_t nhints, ndices;
 
 	sorted_symbols = NULL;
 	nsorted_symbols = 0;
@@ -593,6 +619,8 @@ void *cookie) /* cookie is not used */
 	nindirect_symbols = 0;
 	hints = NULL;
 	nhints = 0;
+	dices = NULL;
+	ndices = 0;
 	symbols = NULL;
 	symbols64 = NULL;
 	nsymbols = 0;
@@ -613,6 +641,7 @@ void *cookie) /* cookie is not used */
 	allocated_mods = NULL;
 	allocated_refs = NULL;
 	allocated_hints = NULL;
+	allocated_dices = NULL;
 
 	/*
 	 * The fat headers are printed in ofile_map() in ofile.c #ifdef'ed
@@ -1100,6 +1129,22 @@ void *cookie) /* cookie is not used */
 		ofile->object_byte_sex, hints, nhints, symbols, symbols64,
 		nsymbols, strings, strings_size, vflag);
 	}
+	if(Gflag || (tflag && vflag)){
+	    get_data_in_code_info(ofile->load_commands, mh_ncmds, mh_sizeofcmds,
+		ofile->object_byte_sex, addr, size, &dices, &ndices);
+	    if((intptr_t)dices % sizeof(uint32_t) ||
+	       ofile->object_byte_sex != get_host_byte_sex()){
+		allocated_dices = allocate(ndices *
+					   sizeof(struct data_in_code_entry));
+		memcpy(allocated_dices, dices,
+		       ndices * sizeof(struct data_in_code_entry));
+		dices = allocated_dices;
+	    }
+	    if(ofile->object_byte_sex != get_host_byte_sex())
+		swap_data_in_code_entry(dices, ndices, get_host_byte_sex());
+	    if(Gflag)
+		print_dices(dices, ndices, vflag);
+	}
 	if(Iflag)
 	    print_indirect_symbols(ofile->load_commands, mh_ncmds,mh_sizeofcmds,
 		mh_cputype, ofile->object_byte_sex, indirect_symbols,
@@ -1156,7 +1201,7 @@ void *cookie) /* cookie is not used */
 		       strings_size, relocs, nrelocs, indirect_symbols,
 		       nindirect_symbols, ofile->load_commands, mh_ncmds,
 		       mh_sizeofcmds, vflag, Vflag, mh_cpusubtype,
-		       ofile->object_addr, ofile->object_size);
+		       ofile->object_addr, ofile->object_size, dices, ndices);
 
 	    if(relocs != NULL && relocs != sect_relocs)
 		free(relocs);
@@ -1473,6 +1518,8 @@ void *cookie) /* cookie is not used */
 	    free(allocated_indirect_symbols);
 	if(allocated_hints != NULL)
 	    free(allocated_hints);
+	if(allocated_dices != NULL)
+	    free(allocated_dices);
 	if(allocated_tocs != NULL)
 	    free(allocated_tocs);
 	if(allocated_mods != NULL)
@@ -2014,6 +2061,126 @@ struct twolevel_hints_command *hints_cmd)
 	return(TRUE);
 }
 
+/*
+ * get_data_in_code_info() returns a pointer and the size of the data in code
+ * table.  This routine handles the problems related to the file being truncated
+ * and only returns valid pointers and sizes that can be used.  This routine
+ * will return pointers that are misaligned and it is up to the caller to deal
+ * with alignment issues.  It is also up to the caller to deal with byte sex of
+ * the table.
+ */
+static
+void
+get_data_in_code_info(
+struct load_command *load_commands,
+uint32_t ncmds,
+uint32_t sizeofcmds,
+enum byte_sex load_commands_byte_sex,
+char *object_addr,
+uint32_t object_size,
+struct data_in_code_entry **dices,	/* output */
+uint32_t *ndices)
+{
+    struct linkedit_data_command dices_cmd;
+    uint64_t bigsize;
+
+	*dices = NULL;
+	*ndices = 0;
+
+	memset(&dices_cmd, '\0', sizeof(struct linkedit_data_command));
+	if(get_dices_cmd(load_commands, ncmds, sizeofcmds,
+		         load_commands_byte_sex, &dices_cmd) == FALSE)
+	    return;
+
+	if(dices_cmd.dataoff >= object_size){
+	    printf("data in code offset is past end of file\n");
+	}
+	else{
+	    *dices = (struct data_in_code_entry *)
+		     (object_addr + dices_cmd.dataoff);
+	    bigsize = dices_cmd.datasize;
+	    bigsize += dices_cmd.dataoff;
+	    if(bigsize > object_size){
+		printf("data in code table extends past end of file\n");
+		*ndices = (object_size - dices_cmd.dataoff) /
+			  sizeof(struct data_in_code_entry);
+	    }
+	    else
+		*ndices = dices_cmd.datasize /
+			  sizeof(struct data_in_code_entry);
+	}
+}
+
+/*
+ * get_dices_cmd() gets the linkedit_data_command for the data in code from the
+ * mach header and load commands passed to it and copys it into dices_cmd.  It
+ * if doesn't find one it returns FALSE else it returns TRUE.
+ */
+static
+enum bool
+get_dices_cmd(
+struct load_command *load_commands,
+uint32_t ncmds,
+uint32_t sizeofcmds,
+enum byte_sex load_commands_byte_sex,
+struct linkedit_data_command *dices_cmd)
+{
+    enum byte_sex host_byte_sex;
+    enum bool swapped;
+    uint32_t i, left, size, cmd;
+    struct load_command *lc, l;
+
+	host_byte_sex = get_host_byte_sex();
+	swapped = host_byte_sex != load_commands_byte_sex;
+
+	cmd = UINT_MAX;
+	lc = load_commands;
+	for(i = 0 ; i < ncmds; i++){
+	    memcpy((char *)&l, (char *)lc, sizeof(struct load_command));
+	    if(swapped)
+		swap_load_command(&l, host_byte_sex);
+	    if(l.cmdsize % sizeof(int32_t) != 0)
+		printf("load command %u size not a multiple of "
+		       "sizeof(int32_t)\n", i);
+	    if((char *)lc + l.cmdsize >
+	       (char *)load_commands + sizeofcmds)
+		printf("load command %u extends past end of load "
+		       "commands\n", i);
+	    left = sizeofcmds - ((char *)lc - (char *)load_commands);
+
+	    switch(l.cmd){
+	    case LC_DATA_IN_CODE:
+		if(cmd != UINT_MAX){
+		    printf("more than one LC_DATA_IN_CODE command (using "
+			   "command %u)\n", cmd);
+		    break;
+		}
+		memset((char *)dices_cmd, '\0',
+		       sizeof(struct linkedit_data_command));
+		size = left < sizeof(struct linkedit_data_command) ?
+		       left : sizeof(struct linkedit_data_command);
+		memcpy((char *)dices_cmd, (char *)lc, size);
+		if(swapped)
+		    swap_linkedit_data_command(dices_cmd, host_byte_sex);
+		cmd = i;
+	    }
+	    if(l.cmdsize == 0){
+		printf("load command %u size zero (can't advance to other "
+		       "load commands)\n", i);
+		break;
+	    }
+	    lc = (struct load_command *)((char *)lc + l.cmdsize);
+	    if((char *)lc > (char *)load_commands + sizeofcmds)
+		break;
+	}
+	if((char *)load_commands + sizeofcmds != (char *)lc)
+	    printf("Inconsistent sizeofcmds\n");
+
+	if(cmd == UINT_MAX){
+	    return(FALSE);
+	}
+	return(TRUE);
+}
 
 /*
  * Function for qsort for comparing symbols.
@@ -2393,7 +2560,9 @@ enum bool disassemble,
 enum bool verbose,
 cpu_subtype_t cpusubtype,
 char *object_addr,
-uint32_t object_size)
+uint32_t object_size,
+struct data_in_code_entry *dices,
+uint32_t ndices)
 {
     enum byte_sex host_byte_sex;
     enum bool swapped;
@@ -2436,6 +2605,7 @@ uint32_t object_size)
 	    if(cputype == CPU_TYPE_ARM &&
 	       (cpusubtype == CPU_SUBTYPE_ARM_V7 ||
 	        cpusubtype == CPU_SUBTYPE_ARM_V7F ||
+	        cpusubtype == CPU_SUBTYPE_ARM_V7S ||
 	        cpusubtype == CPU_SUBTYPE_ARM_V7K)){
 		if(sect_flags & S_SYMBOL_STUBS)
 		    in_thumb = FALSE;
@@ -2530,7 +2700,8 @@ uint32_t object_size)
 				strings, strings_size, indirect_symbols,
 				nindirect_symbols, load_commands, ncmds,
 				sizeofcmds, cpusubtype, verbose, arm_dc,
-				thumb_dc, object_addr, object_size);
+				thumb_dc, object_addr, object_size, dices,
+				ndices);
 		else{
 		    printf("Can't disassemble unknown cputype %d\n", cputype);
 		    return;

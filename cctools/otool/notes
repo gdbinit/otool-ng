@@ -3,6 +3,25 @@ TODO:
 - HPPA, bring the private version of mach/hppa/thread_status.h in sync with
   the kernel header and change ofile_print.c to recognize new thread states.
 
+Changes for the 5.32 release (the cctools-835 release):
+- Added support for the LC_ENCRYPTION_INFO_64 load command. Radar bug #11862845.
+  - Added print_encryption_info_command_64() in ofile_print.[ch] .
+  - Added code in print_loadcmds() in ofile_print.c for LC_ENCRYPTION_INFO_64.
+
+Changes for the 5.32 release (the cctools-831 release):
+- Updated the arm disassembler to improve use the data in code tables. Radar bug
+  #11753747.
+
+Changes for the 5.32 release (the cctools-830 release):
+- Changed the arm disassembler to use the data in code table.  Radar bug
+  #11506042.
+- Added the -G flag to otool(1) to print the data in code table.
+  - Added the variable Gflag to main.c and parsing and setting it in main().
+  - Added the routines get_data_in_code_info() and get_dices_cmd() in main.c .
+  - Added code to call the new routines when the Gflag is set to processor() in
+    main.c .
+  Radar bug #11498575.
+
 Changes for the 5.31 release (the cctools-827 release):
 - Added -DLTO_SUPPORT to the CFLAGS in the Makefile and added code in
   to process() in main.c to print "is an LLVM bit-code file" if ofile->lto is
@@ -70,6 +89,10 @@ Changes for the 5.30 release (the cctools-813 release):
 - Added support for annotations with the arm llvm-mc disassembler.  Radar bug
   #10026561.
 
+Changes for the 5.29 release (the cctools-812.1 release):
+- Added the armv7 vfnma and vfnms disassembly to arm_disasm.c.  Radar bug
+  #10132391.
+
 Changes for the 5.30 release (the cctools-812 release):
 - Fix the encoding of the arm sev.w instruction.  Radar bug #10133308.
 
@@ -80,12 +103,19 @@ Changes for the 5.30 release (the cctools-810 release):
 - Fixed print_cstring_section() to print the address base on if the cputype is
   64-bit or 32-bit.  Radar bug #9957089.
 
+Changes for the 5.29 release (the cctools-806.2.1 release):
+- Added the armv7 sdiv and udiv disassembly to arm_disasm.c.  Radar bug
+  #9650734.
+
 Changes for the 5.29 release (the cctools-803 release):
 - Added printing archive member offsets when -aV is specified.  Radar bug
   #9354605.
 
+Changes for the 5.29 release (the cctools-800.5 release):
+- Added support for printing literal pool pointers in 32-bit arm/thumb.
+
 Changes for the 5.29 release (the cctools-800.3 release):
-- Added support for armv7[fk] to print_arch() and print_cputype() in
+- Added support for armv7[fsk] to print_arch() and print_cputype() in
   ofile_print.c and to print_text() in main.c . Radar bug #8987684.
 
 Changes for the 5.29 release (the cctools-800 release):

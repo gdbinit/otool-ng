@@ -729,6 +729,17 @@ char **envp)
 				    CPU_SUBTYPE_ARM_V7F;
 			    }
 			    else if(strcmp(*work_argv,
+					   "armv7s") == 0){
+				if(archflag_cpusubtype != -1 &&
+				   archflag_cpusubtype !=
+					CPU_SUBTYPE_ARM_V7S)
+				    as_fatal("can't specify more "
+				       "than one -arch flag ");
+				specific_archflag = *work_argv;
+				archflag_cpusubtype =
+				    CPU_SUBTYPE_ARM_V7S;
+			    }
+			    else if(strcmp(*work_argv,
 					   "armv7k") == 0){
 				if(archflag_cpusubtype != -1 &&
 				   archflag_cpusubtype !=
