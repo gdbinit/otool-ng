@@ -485,8 +485,8 @@ char **envp)
 	 */
 	if(!fflag && !aflag && !hflag && !lflag && !Lflag && !tflag && !dflag &&
 	   !oflag && !Oflag && !rflag && !Tflag && !Mflag && !Rflag && !Iflag &&
-	   !Hflag && !Sflag && !cflag && !iflag && !Dflag && !segname && !zflag){
-	    error("one of -fahlLtdoOrTMRIHScis must be specified");
+	   !Hflag && !Gflag && !Sflag && !cflag && !iflag && !Dflag && !segname && !zflag){
+	    error("one of -fahlLtdoOrTMRIHGScis must be specified");
 	    usage();
 	}
 	if(qflag && Qflag){
@@ -534,7 +534,7 @@ usage(
 void)
 {
 	fprintf(stderr,
-		"Usage: %s [-arch arch_type] [-fahlLDtdorSTMRIHvVcXmqQ] "
+		"Usage: %s [-arch arch_type] [-fahlLDtdorSTMRIHGvVcXmqQz] "
 		"<object file> ...\n", progname);
 
 	fprintf(stderr, "\t-f print the fat headers\n");
