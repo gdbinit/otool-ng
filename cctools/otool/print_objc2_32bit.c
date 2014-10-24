@@ -760,7 +760,7 @@ char *indent)
 		return;
 	    memset(&m, '\0', sizeof(struct method_t));
 	    if(left < sizeof(struct method_t)){
-		memcpy(&ml, r, left);
+		memcpy(&m, r, left);
 		printf("%s   (method_t entends past the end of the "
 		       "section)\n", indent);
 	    }

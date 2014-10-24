@@ -303,7 +303,7 @@ void
 print_fat_headers(
 struct fat_header *fat_header,
 struct fat_arch *fat_archs,
-uint32_t size,
+uint64_t size,
 enum bool verbose)
 {
     uint32_t i, j;
@@ -585,6 +585,9 @@ struct fat_arch *fat_arch)
 	    case CPU_SUBTYPE_ARM_V6:
 		printf("armv6\n");
 		break;
+	    case CPU_SUBTYPE_ARM_V6M:
+		printf("armv6m\n");
+		break;
 	    case CPU_SUBTYPE_ARM_V7:
 		printf("armv7\n");
 		break;
@@ -596,6 +599,12 @@ struct fat_arch *fat_arch)
 		break;
 	    case CPU_SUBTYPE_ARM_V7K:
 		printf("armv7k\n");
+		break;
+	    case CPU_SUBTYPE_ARM_V7M:
+		printf("armv7m\n");
+		break;
+	    case CPU_SUBTYPE_ARM_V7EM:
+		printf("armv7em\n");
 		break;
 	    default:
 		goto print_arch_unknown;
@@ -867,6 +876,10 @@ cpu_subtype_t cpusubtype)
 		printf("    cputype CPU_TYPE_ARM\n"
 		       "    cpusubtype CPU_SUBTYPE_ARM_V6\n");
 		break;
+	    case CPU_SUBTYPE_ARM_V6M:
+		printf("    cputype CPU_TYPE_ARM\n"
+		       "    cpusubtype CPU_SUBTYPE_ARM_V6M\n");
+		break;
 	    case CPU_SUBTYPE_ARM_V7:
 		printf("    cputype CPU_TYPE_ARM\n"
 		       "    cpusubtype CPU_SUBTYPE_ARM_V7\n");
@@ -882,6 +895,14 @@ cpu_subtype_t cpusubtype)
 	    case CPU_SUBTYPE_ARM_V7K:
 		printf("    cputype CPU_TYPE_ARM\n"
 		       "    cpusubtype CPU_SUBTYPE_ARM_V7K\n");
+		break;
+	    case CPU_SUBTYPE_ARM_V7M:
+		printf("    cputype CPU_TYPE_ARM\n"
+		       "    cpusubtype CPU_SUBTYPE_ARM_V7M\n");
+		break;
+	    case CPU_SUBTYPE_ARM_V7EM:
+		printf("    cputype CPU_TYPE_ARM\n"
+		       "    cpusubtype CPU_SUBTYPE_ARM_V7EM\n");
 		break;
 	    default:
 		goto print_arch_unknown;
@@ -1575,6 +1596,9 @@ NS32:
 		case CPU_SUBTYPE_ARM_V6:
 		    printf("         V6");
 		    break;
+		case CPU_SUBTYPE_ARM_V6M:
+		    printf("        V6M");
+		    break;
 		case CPU_SUBTYPE_ARM_V7:
 		    printf("         V7");
 		    break;
@@ -1586,6 +1610,12 @@ NS32:
 		    break;
 		case CPU_SUBTYPE_ARM_V7K:
 		    printf("        V7K");
+		    break;
+		case CPU_SUBTYPE_ARM_V7M:
+		    printf("        V7M");
+		    break;
+		case CPU_SUBTYPE_ARM_V7EM:
+		    printf("       V7EM");
 		    break;
 		default:
 		    printf(" %10d", cpusubtype & ~CPU_SUBTYPE_MASK);
@@ -1791,13 +1821,12 @@ enum bool very_verbose)
     struct rpath_command rpath;
     struct encryption_info_command encrypt;
     struct encryption_info_command_64 encrypt64;
+    struct linker_option_command lo;
     struct dyld_info_command dyld_info;
     struct version_min_command vd;
     struct entry_point_command ep;
     struct source_version_command sv;
     uint64_t big_load_end;
-//  fG! - 21-11-2012 - store __TEXT segment vmaddr so we can compute the entrypoint in LC_MAIN
-    uint64_t text_vmaddr = 0;
 
 	host_byte_sex = get_host_byte_sex();
 	swapped = host_byte_sex != load_commands_byte_sex;
@@ -1832,11 +1861,6 @@ enum bool very_verbose)
 		    sg.vmaddr, sg.vmsize, sg.fileoff, sg.filesize,
 		    sg.maxprot, sg.initprot, sg.nsects, sg.flags,
 		    object_size, verbose);
-                // fG! - 21-11-2012: copy the value of vmaddr into our variable to use later
-		if (strncmp(sg.segname, "__TEXT",16) == 0)
-		{
-		    text_vmaddr = sg.vmaddr;
-		}
 		p = (char *)lc + sizeof(struct segment_command);
 		for(j = 0 ; j < sg.nsects ; j++){
 		    if(p + sizeof(struct section) >
@@ -1873,11 +1897,6 @@ enum bool very_verbose)
 		    sg64.vmaddr, sg64.vmsize, sg64.fileoff, sg64.filesize,
 		    sg64.maxprot, sg64.initprot, sg64.nsects, sg64.flags,
 		    object_size, verbose);
-		// fG! - 21-11-2012: copy the value of vmaddr into our variable to use later
-                if (strncmp(sg64.segname, "__TEXT",16) == 0)
-                {
-                    text_vmaddr = sg64.vmaddr;
-                }
 		p = (char *)lc + sizeof(struct segment_command_64);
 		for(j = 0 ; j < sg64.nsects ; j++){
 		    if(p + sizeof(struct section_64) >
@@ -2177,6 +2196,17 @@ enum bool very_verbose)
 		print_encryption_info_command_64(&encrypt64, object_size);
 		break;
 
+	    case LC_LINKER_OPTION:
+		memset((char *)&lo, '\0',
+		       sizeof(struct linker_option_command));
+		size = left < sizeof(struct linker_option_command) ?
+		       left : sizeof(struct linker_option_command);
+		memcpy((char *)&lo, (char *)lc, size);
+		if(swapped)
+		    swap_linker_option_command(&lo, host_byte_sex);
+		print_linker_option_command(&lo, lc);
+		break;
+
 	    case LC_DYLD_INFO:
 	    case LC_DYLD_INFO_ONLY:
 		memset((char *)&dyld_info, '\0',
@@ -2217,7 +2247,7 @@ enum bool very_verbose)
 		memcpy((char *)&ep, (char *)lc, size);
 		if(swapped)
 		    swap_entry_point_command(&ep, host_byte_sex);
-		print_entry_point_command(&ep, text_vmaddr);
+		print_entry_point_command(&ep);
 		break;
 
 	    default:
@@ -2429,7 +2459,7 @@ enum bool verbose)
 	    printf("   vmaddr 0x%08x\n", (uint32_t)vmaddr);
 	    printf("   vmsize 0x%08x\n", (uint32_t)vmsize);
 	}
-	printf("  fileoff 0x%llx", fileoff);
+	printf("  fileoff %llu", fileoff);
 	if(fileoff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2556,13 +2586,13 @@ enum bool verbose)
 	    printf(" (past end of file)\n");
 	else
 	    printf("\n");
-	printf("    offset 0x%x", offset);
+	printf("    offset %u", offset);
 	if(offset > object_size)
 	    printf(" (past end of file)\n");
 	else
 	    printf("\n");
 	printf("     align 2^%u (%d)\n", align, 1 << align);
-	printf("    reloff 0x%x", reloff);
+	printf("    reloff %u", reloff);
 	if(reloff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2682,7 +2712,7 @@ uint32_t object_size)
 	    printf(" Incorrect size\n");
 	else
 	    printf("\n");
-	printf("  symoff 0x%x", st->symoff);
+	printf("  symoff %u", st->symoff);
 	if(st->symoff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2706,7 +2736,7 @@ uint32_t object_size)
 	    else
 		printf("\n");
 	}
-	printf("  stroff 0x%x", st->stroff);
+	printf("  stroff %u", st->stroff);
 	if(st->stroff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2772,7 +2802,7 @@ cpu_type_t cputype)
 	    printf(" (past the end of the symbol table)\n");
 	else
 	    printf("\n");
-	printf("         tocoff 0x%x", dyst->tocoff);
+	printf("         tocoff %u", dyst->tocoff);
 	if(dyst->tocoff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2785,7 +2815,7 @@ cpu_type_t cputype)
 	    printf(" (past end of file)\n");
 	else
 	    printf("\n");
-	printf("      modtaboff 0x%x", dyst->modtaboff);
+	printf("      modtaboff %u", dyst->modtaboff);
 	if(dyst->modtaboff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2805,7 +2835,7 @@ cpu_type_t cputype)
 	    printf(" (past end of file)\n");
 	else
 	    printf("\n");
-	printf("   extrefsymoff 0x%x", dyst->extrefsymoff);
+	printf("   extrefsymoff %u", dyst->extrefsymoff);
 	if(dyst->extrefsymoff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2818,7 +2848,7 @@ cpu_type_t cputype)
 	    printf(" (past end of file)\n");
 	else
 	    printf("\n");
-	printf(" indirectsymoff 0x%x", dyst->indirectsymoff);
+	printf(" indirectsymoff %u", dyst->indirectsymoff);
 	if(dyst->indirectsymoff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2831,7 +2861,7 @@ cpu_type_t cputype)
 	    printf(" (past end of file)\n");
 	else
 	    printf("\n");
-	printf("      extreloff 0x%x", dyst->extreloff);
+	printf("      extreloff %u", dyst->extreloff);
 	if(dyst->extreloff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2842,7 +2872,7 @@ cpu_type_t cputype)
 	    printf(" (past end of file)\n");
 	else
 	    printf("\n");
-	printf("      locreloff 0x%x", dyst->locreloff);
+	printf("      locreloff %u", dyst->locreloff);
 	if(dyst->locreloff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2874,7 +2904,7 @@ uint32_t object_size)
 	    printf(" Incorrect size\n");
 	else
 	    printf("\n");
-	printf("  offset 0x%x", ss->offset);
+	printf("  offset %u", ss->offset);
 	if(ss->offset > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2910,11 +2940,11 @@ struct load_command *lc)
 	    printf("\n");
 	if(fl->fvmlib.name.offset < fl->cmdsize){
 	    p = (char *)lc + fl->fvmlib.name.offset;
-	    printf("          name %s (offset 0x%x)\n",
+	    printf("          name %s (offset %u)\n",
 		   p, fl->fvmlib.name.offset);
 	}
 	else{
-	    printf("          name ?(bad offset 0x%x)\n",
+	    printf("          name ?(bad offset %u)\n",
 		   fl->fvmlib.name.offset);
 	}
 	printf(" minor version %u\n", fl->fvmlib.minor_version);
@@ -2955,11 +2985,11 @@ struct load_command *lc)
 	    printf("\n");
 	if(dl->dylib.name.offset < dl->cmdsize){
 	    p = (char *)lc + dl->dylib.name.offset;
-	    printf("         name %s (offset 0x%x)\n",
+	    printf("         name %s (offset %u)\n",
 		   p, dl->dylib.name.offset);
 	}
 	else{
-	    printf("         name ?(bad offset 0x%x)\n",
+	    printf("         name ?(bad offset %u)\n",
 		   dl->dylib.name.offset);
 	}
 	printf("   time stamp %u ", dl->dylib.timestamp);
@@ -3002,11 +3032,11 @@ struct load_command *lc)
 	    printf("\n");
 	if(sub->umbrella.offset < sub->cmdsize){
 	    p = (char *)lc + sub->umbrella.offset;
-	    printf("         umbrella %s (offset 0x%x)\n",
+	    printf("         umbrella %s (offset %u)\n",
 		   p, sub->umbrella.offset);
 	}
 	else{
-	    printf("         umbrella ?(bad offset 0x%x)\n",
+	    printf("         umbrella ?(bad offset %u)\n",
 		   sub->umbrella.offset);
 	}
 }
@@ -3030,11 +3060,11 @@ struct load_command *lc)
 	    printf("\n");
 	if(usub->sub_umbrella.offset < usub->cmdsize){
 	    p = (char *)lc + usub->sub_umbrella.offset;
-	    printf("         sub_umbrella %s (offset 0x%x)\n",
+	    printf("         sub_umbrella %s (offset %u)\n",
 		   p, usub->sub_umbrella.offset);
 	}
 	else{
-	    printf("         sub_umbrella ?(bad offset 0x%x)\n",
+	    printf("         sub_umbrella ?(bad offset %u)\n",
 		   usub->sub_umbrella.offset);
 	}
 }
@@ -3058,11 +3088,11 @@ struct load_command *lc)
 	    printf("\n");
 	if(lsub->sub_library.offset < lsub->cmdsize){
 	    p = (char *)lc + lsub->sub_library.offset;
-	    printf("         sub_library %s (offset 0x%x)\n",
+	    printf("         sub_library %s (offset %u)\n",
 		   p, lsub->sub_library.offset);
 	}
 	else{
-	    printf("         sub_library ?(bad offset 0x%x)\n",
+	    printf("         sub_library ?(bad offset %u)\n",
 		   lsub->sub_library.offset);
 	}
 }
@@ -3086,11 +3116,11 @@ struct load_command *lc)
 	    printf("\n");
 	if(csub->client.offset < csub->cmdsize){
 	    p = (char *)lc + csub->client.offset;
-	    printf("         client %s (offset 0x%x)\n",
+	    printf("         client %s (offset %u)\n",
 		   p, csub->client.offset);
 	}
 	else{
-	    printf("         client ?(bad offset 0x%x)\n",
+	    printf("         client ?(bad offset %u)\n",
 		   csub->client.offset);
 	}
 }
@@ -3116,11 +3146,11 @@ enum bool verbose)
 	    printf("\n");
 	if(pbdylib->name.offset < pbdylib->cmdsize){
 	    p = (char *)lc + pbdylib->name.offset;
-	    printf("           name %s (offset 0x%x)\n",
+	    printf("           name %s (offset %u)\n",
 		   p, pbdylib->name.offset);
 	}
 	else{
-	    printf("           name ?(bad offset 0x%x)\n",
+	    printf("           name ?(bad offset %u)\n",
 		   pbdylib->name.offset);
 	}
 	printf("       nmodules %u\n", pbdylib->nmodules);
@@ -3128,7 +3158,7 @@ enum bool verbose)
 	if(pbdylib->linked_modules.offset < pbdylib->cmdsize){
 	    p = (char *)lc + pbdylib->linked_modules.offset;
 	    if(verbose == TRUE){
-		printf(" linked_modules (offset 0x%x)\n",
+		printf(" linked_modules (offset %u)\n",
 			pbdylib->linked_modules.offset);
 		for(i = 0; i < pbdylib->nmodules; i++){
 		    if(((p[i/8] >> (i%8)) & 1) == 1)
@@ -3145,11 +3175,11 @@ enum bool verbose)
 		}
 		if(i <= pbdylib->nmodules)
 		    printf("...");
-		printf(" (offset 0x%x)\n", pbdylib->linked_modules.offset);
+		printf(" (offset %u)\n", pbdylib->linked_modules.offset);
 	    }
 	}
 	else{
-	    printf(" linked_modules ?(bad offset 0x%x)\n",
+	    printf(" linked_modules ?(bad offset %u)\n",
 		   pbdylib->linked_modules.offset);
 	}
 }
@@ -3181,10 +3211,10 @@ struct load_command *lc)
 	    printf("\n");
 	if(dyld->name.offset < dyld->cmdsize){
 	    p = (char *)lc + dyld->name.offset;
-	    printf("         name %s (offset 0x%x)\n", p, dyld->name.offset);
+	    printf("         name %s (offset %u)\n", p, dyld->name.offset);
 	}
 	else{
-	    printf("         name ?(bad offset 0x%x)\n", dyld->name.offset);
+	    printf("         name ?(bad offset %u)\n", dyld->name.offset);
 	}
 }
 
@@ -3207,10 +3237,10 @@ struct load_command *lc)
 	    printf("\n");
 	if(ff->name.offset < ff->cmdsize){
 	    p = (char *)lc + ff->name.offset;
-	    printf("          name %s (offset 0x%x)\n", p, ff->name.offset);
+	    printf("          name %s (offset %u)\n", p, ff->name.offset);
 	}
 	else{
-	    printf("          name ?(bad offset 0x%x)\n", ff->name.offset);
+	    printf("          name ?(bad offset %u)\n", ff->name.offset);
 	}
 	printf("   header addr 0x%08x\n", (unsigned int)ff->header_addr);
 }
@@ -3280,7 +3310,7 @@ uint32_t object_size)
 	    printf(" Incorrect size\n");
 	else
 	    printf("\n");
-	printf("  offset 0x%x", hints->offset);
+	printf("  offset %u", hints->offset);
 	if(hints->offset > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -3366,7 +3396,7 @@ uint32_t object_size)
 	    printf(" Incorrect size\n");
 	else
 	    printf("\n");
-	printf("  dataoff 0x%x", ld->dataoff);
+	printf("  dataoff %u", ld->dataoff);
 	if(ld->dataoff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -3460,7 +3490,7 @@ struct source_version_command *sv)
  */
 void
 print_entry_point_command(
-struct entry_point_command *ep, uint64_t text_vmaddr)
+struct entry_point_command *ep)
 {
 	printf("       cmd LC_MAIN\n");
 	printf("   cmdsize %u", ep->cmdsize);
@@ -3468,10 +3498,8 @@ struct entry_point_command *ep, uint64_t text_vmaddr)
 	    printf(" Incorrect size\n");
 	else
 	    printf("\n");
-	printf("  entryoff %llx\n", ep->entryoff);
+	printf("  entryoff %llu\n", ep->entryoff);
 	printf(" stacksize %llu\n", ep->stacksize);
-	// fG! - 21-11-2012: print the entrypoint address!
-	printf("entrypoint %p\n", (void*)(text_vmaddr+ep->entryoff));
 }
 
 /*
@@ -3493,10 +3521,10 @@ struct load_command *lc)
 	    printf("\n");
 	if(rpath->path.offset < rpath->cmdsize){
 	    p = (char *)lc + rpath->path.offset;
-	    printf("         path %s (offset 0x%x)\n", p, rpath->path.offset);
+	    printf("         path %s (offset %u)\n", p, rpath->path.offset);
 	}
 	else{
-	    printf("         path ?(bad offset 0x%x)\n", rpath->path.offset);
+	    printf("         path ?(bad offset %u)\n", rpath->path.offset);
 	}
 }
 
@@ -3517,7 +3545,7 @@ uint32_t object_size)
 	    printf(" Incorrect size\n");
 	else
 	    printf("\n");
-	printf("    cryptoff  0x%x", ec->cryptoff);
+	printf("    cryptoff  %u", ec->cryptoff);
 	if(ec->cryptoff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -3549,7 +3577,7 @@ uint32_t object_size)
 	    printf(" Incorrect size\n");
 	else
 	    printf("\n");
-	printf("    cryptoff  0x%x", ec->cryptoff);
+	printf("    cryptoff  %u", ec->cryptoff);
 	if(ec->cryptoff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -3563,6 +3591,49 @@ uint32_t object_size)
 	    printf("\n");
 	printf("    cryptid   %u\n", ec->cryptid);
 	printf("        pad   %u\n", ec->pad);
+}
+
+/*
+ * print an LC_LINKER_OPTION command.  The linker_option_command structure
+ * specified must be aligned correctly and in the host byte sex.  The lc is
+ * the actual load command with the strings that follow it and must have been
+ * previously checked so that the cmdsize does not extend past the size of the
+ * load commands.
+ */
+void
+print_linker_option_command(
+struct linker_option_command *lo,
+struct load_command *lc)
+{
+    int left, len, i;
+    char *string;
+
+	printf("     cmd LC_LINKER_OPTION\n");
+	printf(" cmdsize %u", lo->cmdsize);
+	if(lo->cmdsize < sizeof(struct linker_option_command))
+	    printf(" Incorrect size\n");
+	else
+	    printf("\n");
+	printf("   count %u\n", lo->count);
+	string = (char *)lc + sizeof(struct linker_option_command);
+	left = lo->cmdsize - sizeof(struct linker_option_command);
+	i = 0;
+	while(left > 0){
+	    while(*string == '\0' && left > 0){
+		string++;
+		left--;
+	    }
+	    if(left > 0){
+		i++;
+		printf("  string #%d %.*s\n", i, left, string);
+		len = strnlen(string, left) + 1;
+		string += len;
+		left -= len;
+	    }
+	}
+	if(lo->count != i)
+	  printf("   count %u does not match number of strings %u\n",
+		 lo->count, i);
 }
 
 /*
@@ -3586,7 +3657,7 @@ uint32_t object_size)
 	else
 	    printf("\n");
 
-	printf("     rebase_off 0x%x", dc->rebase_off);
+	printf("     rebase_off %u", dc->rebase_off);
 	if(dc->rebase_off > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -3599,7 +3670,7 @@ uint32_t object_size)
 	else
 	    printf("\n");
 
-	printf("       bind_off 0x%x", dc->bind_off);
+	printf("       bind_off %u", dc->bind_off);
 	if(dc->bind_off > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -3612,7 +3683,7 @@ uint32_t object_size)
 	else
 	    printf("\n");
 	    
-	printf("  weak_bind_off 0x%x", dc->weak_bind_off);
+	printf("  weak_bind_off %u", dc->weak_bind_off);
 	if(dc->weak_bind_off > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -3625,7 +3696,7 @@ uint32_t object_size)
 	else
 	    printf("\n");
 
-	printf("  lazy_bind_off 0x%x", dc->lazy_bind_off);
+	printf("  lazy_bind_off %u", dc->lazy_bind_off);
 	if(dc->lazy_bind_off > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -3638,7 +3709,7 @@ uint32_t object_size)
 	else
 	    printf("\n");
 	    
-	printf("     export_off 0x%x", dc->export_off);
+	printf("     export_off %u", dc->export_off);
 	if(dc->export_off > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -8234,6 +8305,8 @@ const uint32_t strings_size)
 			    stride = s.reserved2;
 			else
 			    stride = 4;
+			if(stride == 0)
+			    return(NULL);
 			index = s.reserved1 + (value - s.addr) / stride;
 			if(index < nindirect_symbols &&
 		    	   symbols != NULL && strings != NULL &&
@@ -8269,6 +8342,8 @@ const uint32_t strings_size)
 			    stride = s64.reserved2;
 			else
 			    stride = 8;
+			if(stride == 0)
+			    return(NULL);
 			index = s64.reserved1 + (value - s64.addr) / stride;
 			if(index < nindirect_symbols &&
 		    	   symbols64 != NULL && strings != NULL &&
@@ -8361,7 +8436,37 @@ uint64_t addr)
 }
 
 /*
- * Print_label prints a symbol name for the addr if a symbol exist with the
+ * get_label returns a symbol name for the addr if a symbol exist with the
+ * same address else it returns NULL.
+ */
+char *
+get_label(
+uint64_t addr,
+struct symbol *sorted_symbols,
+uint32_t nsorted_symbols)
+{
+    int32_t high, low, mid;
+
+	low = 0;
+	high = nsorted_symbols - 1;
+	mid = (high - low) / 2;
+	while(high >= low){
+	    if(sorted_symbols[mid].n_value == addr)
+		return(sorted_symbols[mid].name);
+	    if(sorted_symbols[mid].n_value > addr){
+		high = mid - 1;
+		mid = (high + low) / 2;
+	    }
+	    else{
+		low = mid + 1;
+		mid = (high + low) / 2;
+	    }
+	}
+	return(NULL);
+}
+
+/*
+ * print_label prints a symbol name for the addr if a symbol exist with the
  * same address in label form, namely:.
  *
  * <symbol name>:\n
@@ -8375,25 +8480,12 @@ enum bool colon_and_newline,
 struct symbol *sorted_symbols,
 uint32_t nsorted_symbols)
 {
-    int32_t high, low, mid;
+    char *name;
 
-	low = 0;
-	high = nsorted_symbols - 1;
-	mid = (high - low) / 2;
-	while(high >= low){
-	    if(sorted_symbols[mid].n_value == addr){
-		printf("%s", sorted_symbols[mid].name);
-		if(colon_and_newline == TRUE)
-		    printf(":\n");
-		return;
-	    }
-	    if(sorted_symbols[mid].n_value > addr){
-		high = mid - 1;
-		mid = (high + low) / 2;
-	    }
-	    else{
-		low = mid + 1;
-		mid = (high + low) / 2;
-	    }
+	name = get_label(addr, sorted_symbols, nsorted_symbols);
+	if(name != NULL){
+	    printf("%s", name);
+	    if(colon_and_newline == TRUE)
+		printf(":\n");
 	}
 }

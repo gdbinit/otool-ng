@@ -101,9 +101,9 @@ char *segname)
     uint32_t i;
 
 #ifndef RLD
-	    mhp = _NSGetMachExecuteHeader();
+	mhp = _NSGetMachExecuteHeader();
 #else /* defined(RLD) */
-	    mhp = (struct mach_header_64 *)(&_mh_execute_header);
+	mhp = (struct mach_header_64 *)(&_mh_execute_header);
 #endif /* defined(RLD) */
         
 	sgp = (struct segment_command_64 *)

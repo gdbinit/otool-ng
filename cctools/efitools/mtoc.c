@@ -1339,7 +1339,7 @@ struct ofile *ofile)
 	}
 	else{
 	    if(ofile->mh64->cputype == CPU_TYPE_X86_64)
-	    filehdr.f_magic = IMAGE_FILE_MACHINE_AMD64;
+		filehdr.f_magic = IMAGE_FILE_MACHINE_AMD64;
 	}
 	filehdr.f_nscns = nscns;
 #ifdef HACK_TO_MATCH_TEST_CASE

@@ -351,6 +351,10 @@ __private_extern__ void swap_encryption_command_64(
     struct encryption_info_command_64 *ec,
     enum byte_sex target_byte_sex);
 
+__private_extern__ void swap_linker_option_command(
+    struct linker_option_command *lo,
+    enum byte_sex target_byte_sex);
+
 __private_extern__ void swap_dyld_info_command(
     struct dyld_info_command *dc, 
     enum byte_sex target_byte_sex);
