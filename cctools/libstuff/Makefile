@@ -17,6 +17,8 @@ endif
 
 OFLAG = -Os
 LTO = -DLTO_SUPPORT
+# apply otool-ng patches
+OTOOL_NG = -DOTOOL_NG_SUPPORT
 G = -g
 CFLAGS = $(OFLAG) $(LTO) $(G) -I$(SRCROOT)/../include -Wall $(LEGACY) $(SDK)
 PG = -pg

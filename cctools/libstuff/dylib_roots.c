@@ -99,8 +99,13 @@ enum bool no_error_if_missing)
 		    goto try_to_find_in_dstroot;
 		}
 	    }
+#ifdef OTOOL_NG_SUPPORT
+	    ofile_process(image_file_name, NULL, 0, TRUE,
+			  TRUE, TRUE, FALSE, check_for_dylib, &block, 0);
+#else	    
 	    ofile_process(image_file_name, NULL, 0, TRUE,
 			  TRUE, TRUE, FALSE, check_for_dylib, &block);
+#endif	   
 	    if(block.check_result == TRUE)
 		return(image_file_name);
 	    free(image_file_name);
@@ -177,8 +182,13 @@ const char *root)
 		 * it back to FALSE.
 		 */
 		block.check_result = TRUE;
+#ifdef OTOOL_NG_SUPPORT		
+		ofile_process(ftsent->fts_path, NULL, 0, TRUE,
+			      TRUE, TRUE, FALSE, check_for_dylib,&block, 0);
+#else
 		ofile_process(ftsent->fts_path, NULL, 0, TRUE,
 			      TRUE, TRUE, FALSE, check_for_dylib,&block);
+#endif		
 		if(block.check_result == TRUE){
 		    image_file_name = allocate(ftsent->fts_pathlen + 1);
 		    strcpy(image_file_name, ftsent->fts_path);

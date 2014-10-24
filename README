@@ -17,6 +17,10 @@ those values all the time.
 The -z option was added. It will invert the current PIE flag, remove if set, set if removed.
 It's something I use from time to time and it's faster than loading into MachOView and changing there.
 
+The -O option was added. It's used to point the file offset where the mach-o header is located.
+Usually it's at the beginning of the file, but this option makes it possible for example to dump
+embedded headers in data or binaries files.
+
 If you have any suggestions or improvements feel free to contact me, send patches, etc.
 
 Darwinbuild is not needed anymore to compile! Just go to the cctools folder and type make.

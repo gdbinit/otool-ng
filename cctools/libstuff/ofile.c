@@ -199,7 +199,12 @@ enum bool process_non_objects,
 enum bool dylib_flat,
 enum bool use_member_syntax,
 void (*processor)(struct ofile *ofile, char *arch_name, void *cookie),
-void *cookie)
+void *cookie
+#ifdef OTOOL_NG_SUPPORT
+, uint64_t start_offset)
+#else
+)
+#endif
 {
     char *member_name, *p, *arch_name;
     uint32_t len, i;
@@ -230,8 +235,14 @@ void *cookie)
 #ifdef OTOOL
 	otool_first_ofile_map = TRUE;
 #endif /* OTOOL */
+#ifdef OTOOL_NG_SUPPORT	
+	if(ofile_map(name, NULL, NULL, &ofile, FALSE, start_offset) == FALSE)
+		return;
+#else
 	if(ofile_map(name, NULL, NULL, &ofile, FALSE) == FALSE)
-	    return;
+		return;
+#endif		
+	    
 #ifdef OTOOL
 	otool_first_ofile_map = FALSE;
 #endif /* OTOOL */
@@ -417,8 +428,13 @@ void *cookie)
 			 (host_arch_flag.cpusubtype & ~CPU_SUBTYPE_MASK));
 
 		ofile_unmap(&ofile);
+#ifdef OTOOL_NG_SUPPORT		
+		if(ofile_map(name, NULL, NULL, &ofile, FALSE, start_offset) == FALSE)
+		    return;
+#else
 		if(ofile_map(name, NULL, NULL, &ofile, FALSE) == FALSE)
 		    return;
+#endif		
 		if(ofile_first_arch(&ofile) == FALSE){
 		    ofile_unmap(&ofile);
 		    return;
@@ -533,8 +549,13 @@ void *cookie)
 	     * so do all the architectures in the fat file
 	     */
 	    ofile_unmap(&ofile);
+#ifdef OTOOL_NG_SUPPORT	    
+	    if(ofile_map(name, NULL, NULL, &ofile, FALSE, start_offset) == FALSE)
+		return;
+#else
 	    if(ofile_map(name, NULL, NULL, &ofile, FALSE) == FALSE)
 		return;
+#endif	
 	    if(ofile_first_arch(&ofile) == FALSE){
 		ofile_unmap(&ofile);
 		return;
@@ -828,7 +849,12 @@ const char *file_name,
 const struct arch_flag *arch_flag,	/* can be NULL */
 const char *object_name,		/* can be NULL */
 struct ofile *ofile,
-enum bool archives_with_fat_objects)
+enum bool archives_with_fat_objects
+#ifdef OTOOL_NG_SUPPORT
+, uint64_t start_offset)
+#else
+)
+#endif
 {
     int fd;
     struct stat stat_buf;
@@ -861,8 +887,13 @@ enum bool archives_with_fat_objects)
 	
 	addr = NULL;
 	if(size != 0){
+#ifdef OTOOL_NG_SUPPORT		
+	    addr = mmap(0, size, PROT_READ|PROT_WRITE, MAP_FILE|MAP_PRIVATE, fd,
+		        start_offset);
+#else
 	    addr = mmap(0, size, PROT_READ|PROT_WRITE, MAP_FILE|MAP_PRIVATE, fd,
 		        0);
+#endif	   
 	    if((intptr_t)addr == -1){
 		system_error("can't map file: %s", file_name);
 		close(fd);

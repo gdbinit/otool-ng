@@ -142,7 +142,12 @@ __private_extern__ void ofile_process(
     enum bool dylib_flat,
     enum bool use_member_syntax,
     void (*processor)(struct ofile *ofile, char *arch_name, void *cookie),
-    void *cookie);
+    void *cookie
+#ifdef OTOOL_NG_SUPPORT    
+    , uint64_t start_offset);
+#else
+    );
+#endif
 #ifdef OFI
 __private_extern__ NSObjectFileImageReturnCode ofile_map(
 #else
@@ -152,7 +157,12 @@ __private_extern__ enum bool ofile_map(
     const struct arch_flag *arch_flag,	/* can be NULL */
     const char *object_name,		/* can be NULL */
     struct ofile *ofile,
-    enum bool archives_with_fat_objects);
+    enum bool archives_with_fat_objects
+#ifdef OTOOL_NG_SUPPORT    
+    , uint64_t start_offset);
+#else
+    );
+#endif    
 #ifdef OFI
 __private_extern__ NSObjectFileImageReturnCode ofile_map_from_memory(
 #else

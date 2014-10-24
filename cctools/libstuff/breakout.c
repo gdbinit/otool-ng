@@ -113,7 +113,11 @@ enum bool calculate_input_prebind_cksum)
 	 * Rely on the ofile_*() routines to do all the checking and only
 	 * return valid ofiles files broken out.
 	 */
+#ifdef OTOOL_NG_SUPPORT	 
+	if(ofile_map(filename, NULL, NULL, ofile, FALSE, 0) == FALSE){
+#else
 	if(ofile_map(filename, NULL, NULL, ofile, FALSE) == FALSE){
+#endif		
 	    free(ofile);
 	    return(NULL);
 	}

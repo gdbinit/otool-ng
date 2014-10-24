@@ -94,6 +94,7 @@ enum bool jflag = FALSE; /* print opcode bytes */
 enum bool nflag = FALSE; /* use intel disassembly syntax */
 #ifdef OTOOL_NG_SUPPORT
 enum bool zflag = FALSE; /* change PIE flag */
+uint64_t start_offset;   /* offset to start reading mach-o header from */
 #endif
 char *pflag = NULL; 	 /* procedure name to start disassembling from */
 char *segname = NULL;	 /* name of the section to print the contents of */
@@ -380,6 +381,19 @@ char **envp)
 		object_processing = TRUE;
 		continue;
 	    }
+#ifdef OTOOL_NG_SUPPORT	   
+	    if (argv[i][1] == 'O')
+	    {
+	    	if (argc <= i + 1)
+	    	{
+	    		error("-O requires and argument (offset value)");
+	    		usage();
+	    	}
+	    	start_offset = strtoul(argv[i + 1], NULL, 0);
+	    	i++;
+	    	continue;
+	    }	    	
+#endif	    	
 	    for(j = 1; argv[i][j] != '\0'; j++){
 		switch(argv[i][j]){
 		case 'V':
@@ -518,12 +532,13 @@ char **envp)
 	   !oflag && !Oflag && !rflag && !Tflag && !Mflag && !Rflag && !Iflag &&
 	   !Hflag && !Gflag && !Sflag && !cflag && !iflag && !Dflag && !segname &&
 	   !zflag){
+	   	error("one of -fahlLtdoOrTMRIHGScisz must be specified");
 #else
 	if(!fflag && !aflag && !hflag && !lflag && !Lflag && !tflag && !dflag &&
 	   !oflag && !Oflag && !rflag && !Tflag && !Mflag && !Rflag && !Iflag &&
 	   !Hflag && !Gflag && !Sflag && !cflag && !iflag && !Dflag &&!segname){
+	   	error("one of -fahlLtdoOrTMRIHGScis must be specified");
 #endif	  
-	    error("one of -fahlLtdoOrTMRIHGScis must be specified");
 	    usage();
 	}
 	if(qflag && Qflag){
@@ -558,8 +573,13 @@ char **envp)
 	}
 
 	for(j = 0; j < nfiles; j++){
+#ifdef OTOOL_NG_SUPPORT		
+	    ofile_process(files[j], arch_flags, narch_flags, all_archs, TRUE,
+			  TRUE, use_member_syntax, processor, NULL, start_offset);
+#else
 	    ofile_process(files[j], arch_flags, narch_flags, all_archs, TRUE,
 			  TRUE, use_member_syntax, processor, NULL);
+#endif	    
 	}
 
 	if(errors)
@@ -576,10 +596,15 @@ void
 usage(
 void)
 {
+#ifdef OTOOL_NG_SUPPORT	
 	fprintf(stderr,
-		"Usage: %s [-arch arch_type] [-fahlLDtdorSTMRIHGvVcXmqQ] "
+		"Usage: %s [-arch arch_type] [-fahlLDtdorSTMRIHGvVcXmqQzO] "
 		"[-mcpu=arg] <object file> ...\n", progname);
-
+#else
+	fprintf(stderr,
+		"Usage: %s [-arch arch_type] [-fahlLDtdorSTMRIHGvVcXmqQzO] "
+		"[-mcpu=arg] <object file> ...\n", progname);
+#endif
 	fprintf(stderr, "\t-f print the fat headers\n");
 	fprintf(stderr, "\t-a print the archive header\n");
 	fprintf(stderr, "\t-h print the mach header\n");
@@ -615,6 +640,7 @@ void)
 	fprintf(stderr, "\t-mcpu=arg use `arg' as the cpu for disassembly\n");
 #ifdef OTOOL_NG_SUPPORT	
 	fprintf(stderr, "\t-z modify current PIE flag\n");
+	fprintf(stderr, "\t-O <offset> file offset where to start reading Mach-O header from (default is 0)\n");
 #endif	
 	exit(EXIT_FAILURE);
 }

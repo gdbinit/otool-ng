@@ -63,6 +63,7 @@ extern enum bool gflag; /* group the disassembly */
 extern enum bool jflag; /* print opcode bytes */
 #ifdef OTOOL_NG_SUPPORT
 extern enum bool zflag; /* change PIE flag */
+extern uint64_t start_offset; /* offset to start reading mach-o header from */
 #endif
 extern char *pflag; 	/* procedure name to start disassembling from */
 extern char *segname,
