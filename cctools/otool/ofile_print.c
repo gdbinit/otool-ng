@@ -3073,7 +3073,7 @@ struct load_command *lc)
 		   p, dl->dylib.name.offset);
 	}
 	else{
-#ifdef
+#ifdef OTOOL_NG_SUPPORT
 	    printf("         name ?(bad offset 0x%x)\n",
 #else
 	    printf("         name ?(bad offset %u)\n",
@@ -3276,9 +3276,9 @@ enum bool verbose)
 	else{
 #ifdef OTOOL_NG_SUPPORT
 		printf("           name ?(bad offset 0x%x)\n",
-#endif
-	    printf("           name ?(bad offset %u)\n",
 #else
+	    printf("           name ?(bad offset %u)\n",
+#endif
 		   pbdylib->name.offset);
 	}
 	printf("       nmodules %u\n", pbdylib->nmodules);
