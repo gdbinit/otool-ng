@@ -1831,7 +1831,7 @@ enum bool very_verbose)
     /* store __TEXT segment vmaddr so we can compute the entrypoint in LC_MAIN */
     uint64_t text_vmaddr = 0;
 #endif
-    
+
 	host_byte_sex = get_host_byte_sex();
 	swapped = host_byte_sex != load_commands_byte_sex;
 
@@ -2483,7 +2483,11 @@ enum bool verbose)
 	    printf("   vmaddr 0x%08x\n", (uint32_t)vmaddr);
 	    printf("   vmsize 0x%08x\n", (uint32_t)vmsize);
 	}
+#ifdef OTOOL_NG_SUPPORT
+	printf("  fileoff 0x%llx", fileoff);
+#else
 	printf("  fileoff %llu", fileoff);
+#endif
 	if(fileoff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2610,13 +2614,21 @@ enum bool verbose)
 	    printf(" (past end of file)\n");
 	else
 	    printf("\n");
+#ifdef OTOOL_NG_SUPPORT
+	printf("    offset 0x%x", offset);
+#else
 	printf("    offset %u", offset);
+#endif
 	if(offset > object_size)
 	    printf(" (past end of file)\n");
 	else
 	    printf("\n");
 	printf("     align 2^%u (%d)\n", align, 1 << align);
+#ifdef OTOOL_NG_SUPPORT
+	printf("    reloff 0x%x", reloff);
+#else
 	printf("    reloff %u", reloff);
+#endif
 	if(reloff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2736,7 +2748,11 @@ uint32_t object_size)
 	    printf(" Incorrect size\n");
 	else
 	    printf("\n");
+#ifdef OTOOL_NG_SUPPORT
+	printf("  symoff 0x%x", st->symoff);
+#else
 	printf("  symoff %u", st->symoff);
+#endif
 	if(st->symoff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2760,7 +2776,11 @@ uint32_t object_size)
 	    else
 		printf("\n");
 	}
+#ifdef OTOOL_NG_SUPPORT
+	printf("  stroff 0x%x", st->stroff);
+#else
 	printf("  stroff %u", st->stroff);
+#endif
 	if(st->stroff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2826,7 +2846,11 @@ cpu_type_t cputype)
 	    printf(" (past the end of the symbol table)\n");
 	else
 	    printf("\n");
+#ifdef OTOOL_NG_SUPPORT
+	printf("         tocoff 0x%x", dyst->tocoff);
+#else
 	printf("         tocoff %u", dyst->tocoff);
+#endif
 	if(dyst->tocoff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2839,7 +2863,11 @@ cpu_type_t cputype)
 	    printf(" (past end of file)\n");
 	else
 	    printf("\n");
+#ifdef OTOOL_NG_SUPPORT
+	printf("      modtaboff 0x%x", dyst->modtaboff);
+#else
 	printf("      modtaboff %u", dyst->modtaboff);
+#endif
 	if(dyst->modtaboff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2859,7 +2887,11 @@ cpu_type_t cputype)
 	    printf(" (past end of file)\n");
 	else
 	    printf("\n");
+#ifdef OTOOL_NG_SUPPORT
+	printf("   extrefsymoff 0x%x", dyst->extrefsymoff);
+#else
 	printf("   extrefsymoff %u", dyst->extrefsymoff);
+#endif
 	if(dyst->extrefsymoff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2872,7 +2904,11 @@ cpu_type_t cputype)
 	    printf(" (past end of file)\n");
 	else
 	    printf("\n");
+#ifdef OTOOL_NG_SUPPORT
+	printf(" indirectsymoff 0x%x", dyst->indirectsymoff);
+#else
 	printf(" indirectsymoff %u", dyst->indirectsymoff);
+#endif
 	if(dyst->indirectsymoff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2885,7 +2921,11 @@ cpu_type_t cputype)
 	    printf(" (past end of file)\n");
 	else
 	    printf("\n");
+#ifdef OTOOL_NG_SUPPORT
+	printf("      extreloff 0x%x", dyst->extreloff);
+#else
 	printf("      extreloff %u", dyst->extreloff);
+#endif
 	if(dyst->extreloff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2896,7 +2936,11 @@ cpu_type_t cputype)
 	    printf(" (past end of file)\n");
 	else
 	    printf("\n");
+#ifdef OTOOL_NG_SUPPORT
+	printf("      locreloff 0x%x", dyst->locreloff);
+#else
 	printf("      locreloff %u", dyst->locreloff);
+#endif
 	if(dyst->locreloff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2928,7 +2972,11 @@ uint32_t object_size)
 	    printf(" Incorrect size\n");
 	else
 	    printf("\n");
+#ifdef OTOOL_NG_SUPPORT
+	printf("  offset 0x%x", ss->offset);
+#else
 	printf("  offset %u", ss->offset);
+#endif
 	if(ss->offset > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -2964,11 +3012,19 @@ struct load_command *lc)
 	    printf("\n");
 	if(fl->fvmlib.name.offset < fl->cmdsize){
 	    p = (char *)lc + fl->fvmlib.name.offset;
+#ifdef OTOOL_NG_SUPPORT
+	    printf("          name %s (offset 0x%x)\n",
+#else
 	    printf("          name %s (offset %u)\n",
+#endif
 		   p, fl->fvmlib.name.offset);
 	}
 	else{
+#ifdef OTOOL_NG_SUPPORT
+	    printf("          name ?(bad offset 0x%x)\n",
+#else
 	    printf("          name ?(bad offset %u)\n",
+#endif
 		   fl->fvmlib.name.offset);
 	}
 	printf(" minor version %u\n", fl->fvmlib.minor_version);
@@ -3009,11 +3065,19 @@ struct load_command *lc)
 	    printf("\n");
 	if(dl->dylib.name.offset < dl->cmdsize){
 	    p = (char *)lc + dl->dylib.name.offset;
+#ifdef OTOOL_NG_SUPPORT
+	    printf("         name %s (offset 0x%x)\n",
+#else
 	    printf("         name %s (offset %u)\n",
+#endif
 		   p, dl->dylib.name.offset);
 	}
 	else{
+#ifdef
+	    printf("         name ?(bad offset 0x%x)\n",
+#else
 	    printf("         name ?(bad offset %u)\n",
+#endif
 		   dl->dylib.name.offset);
 	}
 	printf("   time stamp %u ", dl->dylib.timestamp);
@@ -3056,11 +3120,19 @@ struct load_command *lc)
 	    printf("\n");
 	if(sub->umbrella.offset < sub->cmdsize){
 	    p = (char *)lc + sub->umbrella.offset;
+#ifdef OTOOL_NG_SUPPORT
+	    printf("         umbrella %s (offset 0x%x)\n",
+#else
 	    printf("         umbrella %s (offset %u)\n",
+#endif
 		   p, sub->umbrella.offset);
 	}
 	else{
+#ifdef OTOOL_NG_SUPPORT
+	    printf("         umbrella ?(bad offset 0x%x)\n",
+#else
 	    printf("         umbrella ?(bad offset %u)\n",
+#endif
 		   sub->umbrella.offset);
 	}
 }
@@ -3084,11 +3156,19 @@ struct load_command *lc)
 	    printf("\n");
 	if(usub->sub_umbrella.offset < usub->cmdsize){
 	    p = (char *)lc + usub->sub_umbrella.offset;
+#ifdef OTOOL_NG_SUPPORT
+	    printf("         sub_umbrella %s (offset 0x%x)\n",
+#else
 	    printf("         sub_umbrella %s (offset %u)\n",
+#endif
 		   p, usub->sub_umbrella.offset);
 	}
 	else{
+#ifdef OTOOL_NG_SUPPORT
+		printf("         sub_umbrella ?(bad offset 0x%x)\n",
+#else
 	    printf("         sub_umbrella ?(bad offset %u)\n",
+#endif
 		   usub->sub_umbrella.offset);
 	}
 }
@@ -3112,11 +3192,19 @@ struct load_command *lc)
 	    printf("\n");
 	if(lsub->sub_library.offset < lsub->cmdsize){
 	    p = (char *)lc + lsub->sub_library.offset;
+#ifdef OTOOL_NG_SUPPORT
+	    printf("         sub_library %s (offset 0x%x)\n",
+#else
 	    printf("         sub_library %s (offset %u)\n",
+#endif
 		   p, lsub->sub_library.offset);
 	}
 	else{
+#ifdef OTOOL_NG_SUPPORT
+		printf("         sub_library ?(bad offset 0x%x)\n",
+#else
 	    printf("         sub_library ?(bad offset %u)\n",
+#endif
 		   lsub->sub_library.offset);
 	}
 }
@@ -3140,11 +3228,19 @@ struct load_command *lc)
 	    printf("\n");
 	if(csub->client.offset < csub->cmdsize){
 	    p = (char *)lc + csub->client.offset;
+#ifdef OTOOL_NG_SUPPORT
+	    printf("         client %s (offset 0x%x)\n",
+#else
 	    printf("         client %s (offset %u)\n",
+#endif
 		   p, csub->client.offset);
 	}
 	else{
+#ifdef OTOOL_NG_SUPPORT
+		printf("         client ?(bad offset 0x%x)\n",
+#else
 	    printf("         client ?(bad offset %u)\n",
+#endif
 		   csub->client.offset);
 	}
 }
@@ -3170,11 +3266,19 @@ enum bool verbose)
 	    printf("\n");
 	if(pbdylib->name.offset < pbdylib->cmdsize){
 	    p = (char *)lc + pbdylib->name.offset;
+#ifdef OTOOL_NG_SUPPORT
+	    printf("           name %s (offset 0x%x)\n",
+#else
 	    printf("           name %s (offset %u)\n",
+#endif
 		   p, pbdylib->name.offset);
 	}
 	else{
+#ifdef OTOOL_NG_SUPPORT
+		printf("           name ?(bad offset 0x%x)\n",
+#endif
 	    printf("           name ?(bad offset %u)\n",
+#else
 		   pbdylib->name.offset);
 	}
 	printf("       nmodules %u\n", pbdylib->nmodules);
@@ -3182,7 +3286,11 @@ enum bool verbose)
 	if(pbdylib->linked_modules.offset < pbdylib->cmdsize){
 	    p = (char *)lc + pbdylib->linked_modules.offset;
 	    if(verbose == TRUE){
+#ifdef OTOOL_NG_SUPPORT
+		printf(" linked_modules (offset 0x%x)\n",	    	
+#else
 		printf(" linked_modules (offset %u)\n",
+#endif
 			pbdylib->linked_modules.offset);
 		for(i = 0; i < pbdylib->nmodules; i++){
 		    if(((p[i/8] >> (i%8)) & 1) == 1)
@@ -3199,11 +3307,19 @@ enum bool verbose)
 		}
 		if(i <= pbdylib->nmodules)
 		    printf("...");
+#ifdef OTOOL_NG_SUPPORT		
+		printf(" (offset 0x%x)\n", pbdylib->linked_modules.offset);
+#else
 		printf(" (offset %u)\n", pbdylib->linked_modules.offset);
+#endif
 	    }
 	}
 	else{
+#ifdef OTOOL_NG_SUPPORT		
+		printf(" linked_modules ?(bad offset 0x%x)\n",
+#else			
 	    printf(" linked_modules ?(bad offset %u)\n",
+#endif	    	
 		   pbdylib->linked_modules.offset);
 	}
 }
@@ -3235,10 +3351,18 @@ struct load_command *lc)
 	    printf("\n");
 	if(dyld->name.offset < dyld->cmdsize){
 	    p = (char *)lc + dyld->name.offset;
+#ifdef OTOOL_NG_SUPPORT	    
+	    printf("         name %s (offset 0x%x)\n", p, dyld->name.offset);
+#else	    
 	    printf("         name %s (offset %u)\n", p, dyld->name.offset);
+#endif	    
 	}
 	else{
+#ifdef OTOOL_NG_SUPPORT		
+		printf("         name ?(bad offset 0x%x)\n", dyld->name.offset);
+#else
 	    printf("         name ?(bad offset %u)\n", dyld->name.offset);
+#endif	    
 	}
 }
 
@@ -3261,10 +3385,18 @@ struct load_command *lc)
 	    printf("\n");
 	if(ff->name.offset < ff->cmdsize){
 	    p = (char *)lc + ff->name.offset;
+#ifdef OTOOL_NG_SUPPORT	    
+	    printf("          name %s (offset 0x%x)\n", p, ff->name.offset);
+#else	    
 	    printf("          name %s (offset %u)\n", p, ff->name.offset);
+#endif	    
 	}
 	else{
+#ifdef OTOOL_NG_SUPPORT
+		printf("          name ?(bad offset 0x%x)\n", ff->name.offset);
+#else		
 	    printf("          name ?(bad offset %u)\n", ff->name.offset);
+#endif	    
 	}
 	printf("   header addr 0x%08x\n", (unsigned int)ff->header_addr);
 }
@@ -3334,7 +3466,11 @@ uint32_t object_size)
 	    printf(" Incorrect size\n");
 	else
 	    printf("\n");
+#ifdef OTOOL_NG_SUPPORT	
+	printf("  offset 0x%x", hints->offset);
+#else	
 	printf("  offset %u", hints->offset);
+#endif	
 	if(hints->offset > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -3420,7 +3556,11 @@ uint32_t object_size)
 	    printf(" Incorrect size\n");
 	else
 	    printf("\n");
+#ifdef OTOOL_NG_SUPPORT	
+	printf("  dataoff 0x%x", ld->dataoff);
+#else	
 	printf("  dataoff %u", ld->dataoff);
+#endif	
 	if(ld->dataoff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -3526,7 +3666,11 @@ struct entry_point_command *ep)
 	    printf(" Incorrect size\n");
 	else
 	    printf("\n");
+#ifdef OTOOL_NG_SUPPORT	
+	printf("  entryoff 0x%llx\n", ep->entryoff);
+#else	
 	printf("  entryoff %llu\n", ep->entryoff);
+#endif	
 	printf(" stacksize %llu\n", ep->stacksize);
 #ifdef OTOOL_NG_SUPPORT
 	printf("entrypoint %p\n", (void*)(text_vmaddr + ep->entryoff));
@@ -3552,10 +3696,18 @@ struct load_command *lc)
 	    printf("\n");
 	if(rpath->path.offset < rpath->cmdsize){
 	    p = (char *)lc + rpath->path.offset;
+#ifdef OTOOL_NG_SUPPORT	    
+	    printf("         path %s (offset 0x%x)\n", p, rpath->path.offset);
+#else	    
 	    printf("         path %s (offset %u)\n", p, rpath->path.offset);
+#endif	    
 	}
 	else{
+#ifdef OTOOL_NG_SUPPORT		
+		printf("         path ?(bad offset 0x%x)\n", rpath->path.offset);
+#else		
 	    printf("         path ?(bad offset %u)\n", rpath->path.offset);
+#endif	    
 	}
 }
 
@@ -3576,7 +3728,11 @@ uint32_t object_size)
 	    printf(" Incorrect size\n");
 	else
 	    printf("\n");
+#ifdef OTOOL_NG_SUPPORT
+	printf("    cryptoff  0x%x", ec->cryptoff);
+#else
 	printf("    cryptoff  %u", ec->cryptoff);
+#endif
 	if(ec->cryptoff > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -3687,8 +3843,11 @@ uint32_t object_size)
 	    printf(" Incorrect size\n");
 	else
 	    printf("\n");
-
+#ifdef OTOOL_NG_SUPPORT
+	printf("     rebase_off 0x%x", dc->rebase_off);
+#else
 	printf("     rebase_off %u", dc->rebase_off);
+#endif
 	if(dc->rebase_off > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -3700,8 +3859,11 @@ uint32_t object_size)
 	    printf(" (past end of file)\n");
 	else
 	    printf("\n");
-
+#ifdef OTOOL_NG_SUPPORT
+	printf("       bind_off 0x%x", dc->bind_off);
+#else
 	printf("       bind_off %u", dc->bind_off);
+#endif
 	if(dc->bind_off > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -3714,7 +3876,11 @@ uint32_t object_size)
 	else
 	    printf("\n");
 	    
+#ifdef OTOOL_NG_SUPPORT
+	printf("  weak_bind_off 0x%x", dc->weak_bind_off);
+#else
 	printf("  weak_bind_off %u", dc->weak_bind_off);
+#endif
 	if(dc->weak_bind_off > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -3727,7 +3893,11 @@ uint32_t object_size)
 	else
 	    printf("\n");
 
+#ifdef OTOOL_NG_SUPPORT
+	printf("  lazy_bind_off 0x%x", dc->lazy_bind_off);
+#else
 	printf("  lazy_bind_off %u", dc->lazy_bind_off);
+#endif
 	if(dc->lazy_bind_off > object_size)
 	    printf(" (past end of file)\n");
 	else
@@ -3740,7 +3910,11 @@ uint32_t object_size)
 	else
 	    printf("\n");
 	    
+#ifdef OTOOL_NG_SUPPORT
+	printf("     export_off 0x%x", dc->export_off);
+#else
 	printf("     export_off %u", dc->export_off);
+#endif
 	if(dc->export_off > object_size)
 	    printf(" (past end of file)\n");
 	else
