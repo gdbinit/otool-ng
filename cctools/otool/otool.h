@@ -61,6 +61,9 @@ extern enum bool Qflag; /* use the HACKED llvm-mc disassembler */
 extern enum bool qflag; /* use 'C' Public llvm-mc disassembler */
 extern enum bool gflag; /* group the disassembly */
 extern enum bool jflag; /* print opcode bytes */
+#ifdef OTOOL_NG_SUPPORT
+extern enum bool zflag; /* change PIE flag */
+#endif
 extern char *pflag; 	/* procedure name to start disassembling from */
 extern char *segname,
      *sectname;	    /* name of the section to print the contents of */
