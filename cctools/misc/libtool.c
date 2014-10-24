@@ -1369,8 +1369,11 @@ void)
 			    }
 			}
 		    }
-		    else if(ofiles[i].arch_type == OFILE_Mach_O ||
-		            ofiles[i].arch_type == OFILE_LLVM_BITCODE){
+		    else if(ofiles[i].arch_type == OFILE_Mach_O
+#ifdef LTO_SUPPORT
+		           || ofiles[i].arch_type == OFILE_LLVM_BITCODE
+#endif		           
+		           ){
 			if(cmd_flags.ranlib == TRUE){
 			    error("for architecture: %s file: %s is not an "
 				  "archive (no processing done on this file)",
