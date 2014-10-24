@@ -300,7 +300,11 @@ extern void print_source_version_command(
     struct source_version_command *sv);
 
 extern void print_entry_point_command(
+#ifdef OTOOL_NG_SUPPORT
+    struct entry_point_command *ep, uint64_t text_vmaddr);
+#else
     struct entry_point_command *ep);
+#endif
 
 extern void print_rpath_command(
     struct rpath_command *rpath,

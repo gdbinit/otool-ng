@@ -1827,7 +1827,11 @@ enum bool very_verbose)
     struct entry_point_command ep;
     struct source_version_command sv;
     uint64_t big_load_end;
-
+#ifdef OTOOL_NG_SUPPORT
+    /* store __TEXT segment vmaddr so we can compute the entrypoint in LC_MAIN */
+    uint64_t text_vmaddr = 0;
+#endif
+    
 	host_byte_sex = get_host_byte_sex();
 	swapped = host_byte_sex != load_commands_byte_sex;
 
@@ -1861,6 +1865,14 @@ enum bool very_verbose)
 		    sg.vmaddr, sg.vmsize, sg.fileoff, sg.filesize,
 		    sg.maxprot, sg.initprot, sg.nsects, sg.flags,
 		    object_size, verbose);
+#ifdef OTOOL_NG_SUPPORT
+		/* copy the value of vmaddr into our variable to use later */
+		/* this is because LC_MAIN offset is from the __TEXT segment */
+		if (strncmp(sg.segname, "__TEXT", 16) == 0)
+		{
+			text_vmaddr = sg.vmaddr;
+		}
+#endif
 		p = (char *)lc + sizeof(struct segment_command);
 		for(j = 0 ; j < sg.nsects ; j++){
 		    if(p + sizeof(struct section) >
@@ -1897,6 +1909,14 @@ enum bool very_verbose)
 		    sg64.vmaddr, sg64.vmsize, sg64.fileoff, sg64.filesize,
 		    sg64.maxprot, sg64.initprot, sg64.nsects, sg64.flags,
 		    object_size, verbose);
+#ifdef OTOOL_NG_SUPPORT
+		/* copy the value of vmaddr into our variable to use later */
+		/* this is because LC_MAIN offset is from the __TEXT segment */
+		if (strncmp(sg64.segname, "__TEXT", 16) == 0)
+		{
+			text_vmaddr = sg64.vmaddr;
+		}
+#endif
 		p = (char *)lc + sizeof(struct segment_command_64);
 		for(j = 0 ; j < sg64.nsects ; j++){
 		    if(p + sizeof(struct section_64) >
@@ -2247,7 +2267,11 @@ enum bool very_verbose)
 		memcpy((char *)&ep, (char *)lc, size);
 		if(swapped)
 		    swap_entry_point_command(&ep, host_byte_sex);
+#ifdef OTOOL_NG_SUPPORT
+		print_entry_point_command(&ep, text_vmaddr);
+#else
 		print_entry_point_command(&ep);
+#endif
 		break;
 
 	    default:
@@ -3490,7 +3514,11 @@ struct source_version_command *sv)
  */
 void
 print_entry_point_command(
+#ifdef OTOOL_NG_SUPPORT
+struct entry_point_command *ep, uint64_t text_vmaddr)
+#else
 struct entry_point_command *ep)
+#endif
 {
 	printf("       cmd LC_MAIN\n");
 	printf("   cmdsize %u", ep->cmdsize);
@@ -3500,6 +3528,9 @@ struct entry_point_command *ep)
 	    printf("\n");
 	printf("  entryoff %llu\n", ep->entryoff);
 	printf(" stacksize %llu\n", ep->stacksize);
+#ifdef OTOOL_NG_SUPPORT
+	printf("entrypoint %p\n", (void*)(text_vmaddr + ep->entryoff));
+#endif
 }
 
 /*

@@ -15,6 +15,8 @@ SUBDIRS = $(COMMON_SUBDIRS) $(APPLE_SUBDIRS) $(EFITOOLS)
 OLD_LIBKLD = NO
 BUILD_DYLIBS = YES
 LTO = -DLTO_SUPPORT
+# apply otool-ng patches
+OTOOL_NG = -DOTOOL_NG_SUPPORT
 
 ifeq "macos" "$(RC_OS)"
   TRIE := $(shell if [ "$(RC_MAJOR_RELEASE_TRAIN)" = "Tiger" ] || \
@@ -47,7 +49,7 @@ all clean: $(DSTROOT)
 			RC_ARCHS="$(RC_ARCHS)" RC_OS="$(RC_OS)"		\
 			VERS_STRING_FLAGS="$(VERS_STRING_FLAGS)"	\
 			EFITOOLS="$(EFITOOLS)" 				\
-			TRIE="$(TRIE)" LTO="$(LTO)" DSTROOT=$$DSTROOT	\
+			TRIE="$(TRIE)" LTO="$(LTO)" OTOOL_NG="$(OTOOL_NG)" DSTROOT=$$DSTROOT	\
 			SRCROOT=$(SRCROOT)/$$i				\
 			OBJROOT=$(OBJROOT)/$$i				\
 			SYMROOT=$(SYMROOT)/$$i $@) || exit 1 ;		\
@@ -66,7 +68,7 @@ all clean: $(DSTROOT)
 			RC_ARCHS="$(RC_ARCHS)" RC_OS="$(RC_OS)"		\
 			VERS_STRING_FLAGS="$(VERS_STRING_FLAGS)"	\
 			EFITOOLS="$(EFITOOLS)" 				\
-			TRIE="$(TRIE)" LTO="$(LTO)" DSTROOT=$$DSTROOT	\
+			TRIE="$(TRIE)" LTO="$(LTO)" OTOOL_NG="$(OTOOL_NG)" DSTROOT=$$DSTROOT	\
 			SRCROOT=$(SRCROOT)/$$i				\
 			OBJROOT=$(OBJROOT)/$$i				\
 			SYMROOT=$(SYMROOT)/$$i $@) || exit 1 ;		\
@@ -80,7 +82,7 @@ all clean: $(DSTROOT)
 		    (cd $$i; $(MAKE) RC_CFLAGS="$(RC_CFLAGS)"		\
 			RC_ARCHS="$(RC_ARCHS)" RC_OS="$(RC_OS)"		\
 			EFITOOLS="$(EFITOOLS)" 				\
-			TRIE="$(TRIE)" LTO="$(LTO)" DSTROOT=$$DSTROOT 	\
+			TRIE="$(TRIE)" LTO="$(LTO)" OTOOL_NG="$(OTOOL_NG)" DSTROOT=$$DSTROOT 	\
 			$@) || exit 1 ; 				\
 	      done;							\
 	    SED_RC_CFLAGS=`echo "$(RC_CFLAGS)" | sed 's/-arch ppc64//'  \
@@ -96,7 +98,7 @@ all clean: $(DSTROOT)
 		    (cd $$i; $(MAKE) RC_CFLAGS="$$SED_RC_CFLAGS"	\
 			RC_ARCHS="$(RC_ARCHS)" RC_OS="$(RC_OS)"		\
 			EFITOOLS="$(EFITOOLS)"				\
-			TRIE="$(TRIE)" LTO="$(LTO)" DSTROOT=$$DSTROOT	\
+			TRIE="$(TRIE)" LTO="$(LTO)" OTOOL_NG="$(OTOOL_NG)" DSTROOT=$$DSTROOT	\
 			$@) || exit 1 ; 				\
 	        done;							\
 	    fi								\
@@ -126,7 +128,7 @@ install:
 		RC_ARCHS="$(RC_ARCHS)" RC_OS="$(RC_OS)"			\
 		VERS_STRING_FLAGS="$(VERS_STRING_FLAGS)"		\
 		EFITOOLS="$(EFITOOLS)" TRIE="$(TRIE)"			\
-		LTO="$(LTO)" DSTROOT=$$DSTROOT/$(INSTALL_LOCATION)	\
+		LTO="$(LTO)" OTOOL_NG="$(OTOOL_NG)" DSTROOT=$$DSTROOT/$(INSTALL_LOCATION)	\
 		SRCROOT=$(SRCROOT)					\
 		OBJROOT=$(OBJROOT)					\
 		SYMROOT=$(SYMROOT) $$target;				\
@@ -138,7 +140,7 @@ install:
 		SUBDIRS_32="$(SUBDIRS_32)"				\
 		VERS_STRING_FLAGS="$(VERS_STRING_FLAGS)"		\
 		EFITOOLS="$(EFITOOLS)" TRIE="$(TRIE)"			\
-		LTO="$(LTO)" DSTROOT=$$DSTROOT install_tools 		\
+		LTO="$(LTO)" OTOOL_NG="$(OTOOL_NG)" DSTROOT=$$DSTROOT install_tools 		\
 		lib_ofiles_install;					\
 	fi
 
@@ -153,7 +155,7 @@ install_tools: installhdrs
 			RC_ARCHS="$(RC_ARCHS)" RC_OS="$(RC_OS)"		\
 			VERS_STRING_FLAGS="$(VERS_STRING_FLAGS)"	\
 			EFITOOLS="$(EFITOOLS)" 				\
-			TRIE="$(TRIE)" LTO="$(LTO)" DSTROOT=$$DSTROOT	\
+			TRIE="$(TRIE)" LTO="$(LTO)" OTOOL_NG="$(OTOOL_NG)" DSTROOT=$$DSTROOT	\
 			SRCROOT=$(SRCROOT)/$$i				\
 			OBJROOT=$(OBJROOT)/$$i				\
 			SYMROOT=$(SYMROOT)/$$i install) || exit 1;	\
@@ -172,7 +174,7 @@ install_tools: installhdrs
 			RC_ARCHS="$(RC_ARCHS)" RC_OS="$(RC_OS)"		\
 			VERS_STRING_FLAGS="$(VERS_STRING_FLAGS)"	\
 			EFITOOLS="$(EFITOOLS)"				\
-			TRIE="$(TRIE)" LTO="$(LTO)" DSTROOT=$$DSTROOT	\
+			TRIE="$(TRIE)" LTO="$(LTO)" OTOOL_NG="$(OTOOL_NG)" DSTROOT=$$DSTROOT	\
 			SRCROOT=$(SRCROOT)/$$i				\
 			OBJROOT=$(OBJROOT)/$$i				\
 			SYMROOT=$(SYMROOT)/$$i install) || exit 1;	\
@@ -187,7 +189,7 @@ install_tools: installhdrs
 			RC_ARCHS="$(RC_ARCHS)" RC_OS="$(RC_OS)"		\
 			VERS_STRING_FLAGS="$(VERS_STRING_FLAGS)"	\
 			EFITOOLS="$(EFITOOLS)"				\
-			TRIE="$(TRIE)" LTO="$(LTO)" DSTROOT=$$DSTROOT 	\
+			TRIE="$(TRIE)" LTO="$(LTO)" OTOOL_NG="$(OTOOL_NG)" DSTROOT=$$DSTROOT 	\
 			install) || exit 1;				\
 	      done;							\
 	    SED_RC_CFLAGS=`echo "$(RC_CFLAGS)" | sed 's/-arch ppc64//'  \
@@ -204,7 +206,7 @@ install_tools: installhdrs
 			RC_ARCHS="$(RC_ARCHS)" RC_OS="$(RC_OS)"		\
 			VERS_STRING_FLAGS="$(VERS_STRING_FLAGS)"	\
 			EFITOOLS="$(EFITOOLS)"				\
-			TRIE="$(TRIE)" LTO="$(LTO)" DSTROOT=$$DSTROOT 	\
+			TRIE="$(TRIE)" LTO="$(LTO)" OTOOL_NG="$(OTOOL_NG)" DSTROOT=$$DSTROOT 	\
 			install) || exit 1;				\
 	        done;							\
 	    fi								\
@@ -220,7 +222,7 @@ ofiles_install:
 		OBJROOT=$(OBJROOT)					\
 		SYMROOT=$(SYMROOT)					\
 		EFITOOLS="$(EFITOOLS)" TRIE="$(TRIE)"			\
-		LTO="$(LTO)" lib_ofiles_install
+		LTO="$(LTO)" OTOOL_NG="$(OTOOL_NG)" lib_ofiles_install
 
 lib_ofiles lib_ofiles_install: installhdrs
 	@if [ $(SRCROOT) ];						\
@@ -265,7 +267,7 @@ lib_ofiles lib_ofiles_install: installhdrs
 	    echo =========== $(MAKE) $@ for misc =============;	\
 	    (cd misc; $(MAKE) "RC_CFLAGS=$(RC_CFLAGS)"			\
 		RC_ARCHS="$(RC_ARCHS)" RC_OS="$(RC_OS)"			\
-		TRIE="$(TRIE)" LTO="$(LTO)"				\
+		TRIE="$(TRIE)" LTO="$(LTO)" OTOOL_NG="$(OTOOL_NG)"				\
 		DSTROOT=$$DSTROOT					\
 		SRCROOT=$(SRCROOT)/misc					\
 		OBJROOT=$(OBJROOT)/misc					\
@@ -304,7 +306,7 @@ lib_ofiles lib_ofiles_install: installhdrs
 	    echo =========== $(MAKE) $@ for misc =============;		\
 	    (cd misc; $(MAKE) "RC_CFLAGS=$(RC_CFLAGS)"			\
 		RC_ARCHS="$(RC_ARCHS)" RC_OS="$(RC_OS)"			\
-		TRIE="$(TRIE)" LTO="$(LTO)"				\
+		TRIE="$(TRIE)" LTO="$(LTO)" OTOOL_NG="$(OTOOL_NG)"				\
 		DSTROOT=$$DSTROOT $@) || exit 1;			\
 	    (cd cbtlibs; $(MAKE) "RC_CFLAGS=$(RC_CFLAGS)"		\
 		RC_ARCHS="$(RC_ARCHS)" RC_OS="$(RC_OS)"			\
@@ -321,7 +323,7 @@ install_dev_tools:
 		OBJROOT=$(OBJROOT)					\
 		SYMROOT=$(SYMROOT)					\
 		EFITOOLS="$(EFITOOLS)" TRIE="$(TRIE)"			\
-		LTO="$(LTO)" install
+		LTO="$(LTO)" OTOOL_NG="$(OTOOL_NG)" install
 
 install_os_tools: installhdrs
 	@if [ $(SRCROOT) ];						\
@@ -338,7 +340,7 @@ install_os_tools: installhdrs
 	    echo =========== $(MAKE) $@ for misc =============;	\
 	    (cd misc; $(MAKE) "RC_CFLAGS=$(RC_CFLAGS)"			\
 		RC_ARCHS="$(RC_ARCHS)" RC_OS="$(RC_OS)"			\
-		TRIE="$(TRIE)" LTO="$(LTO)"				\
+		TRIE="$(TRIE)" LTO="$(LTO)" OTOOL_NG="$(OTOOL_NG)"				\
 		DSTROOT=$$DSTROOT					\
 		SRCROOT=$(SRCROOT)/misc					\
 		OBJROOT=$(OBJROOT)/misc					\
@@ -359,7 +361,7 @@ install_os_tools: installhdrs
 	    echo =========== $(MAKE) $@ for misc =============;		\
 	    (cd misc; $(MAKE) "RC_CFLAGS=$(RC_CFLAGS)"			\
 		RC_ARCHS="$(RC_ARCHS)" RC_OS="$(RC_OS)"			\
-		TRIE="$(TRIE)" LTO="$(LTO)"				\
+		TRIE="$(TRIE)" LTO="$(LTO)" OTOOL_NG="$(OTOOL_NG)"				\
 		DSTROOT=$$DSTROOT $@) || exit 1;			\
 	    echo =========== $(MAKE) $@ for man =============;		\
 	    (cd man; $(MAKE) "RC_CFLAGS=$(RC_CFLAGS)"			\
