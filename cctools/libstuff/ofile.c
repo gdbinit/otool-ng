@@ -887,7 +887,13 @@ enum bool archives_with_fat_objects
 	
 	addr = NULL;
 	if(size != 0){
-#ifdef OTOOL_NG_SUPPORT		
+#ifdef OTOOL_NG_SUPPORT	
+		if (start_offset > size)
+		{
+			error("ERROR: specified file offset higher than file size!");
+			close(fd);
+			return(FALSE);
+		}	
 	    addr = mmap(0, size, PROT_READ|PROT_WRITE, MAP_FILE|MAP_PRIVATE, fd,
 		        start_offset);
 #else
