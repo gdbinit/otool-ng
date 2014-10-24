@@ -26,6 +26,7 @@ ifeq "macos" "$(RC_OS)"
 else
   TRIE =
 endif
+TRIE =
 
 ifneq "" "$(wildcard /bin/mkdirs)"
   MKDIRS = /bin/mkdirs

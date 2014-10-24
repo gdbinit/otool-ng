@@ -11,7 +11,7 @@ endif
 
 OFLAG = -Os
 LTO = -DLTO_SUPPORT
-TRIE = -DTRIE_SUPPORT
+TRIE = 
 CFLAGS = $(OFLAG) $(LTO) $(TRIE) -g -Wall \
 	 -I$(SRCROOT) -I$(SRCROOT)/../include -I$(OFILE_DIR) $(SDK) \
 	 -I$(DT_TOOLCHAIN_DIR)/usr/local/include
